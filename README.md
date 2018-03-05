@@ -9,7 +9,8 @@ Caffe for CC4.0-Windows，Caffe从没如此简单，更简单的Caffe C++接口�
 4.能够轻易自定义layer、自己实现数据层，不需要lmdb也能高效率训练<br/>
 5.能够在训练过程中对自定义layer进行调试查看中间结果<br/>
 
-# 下载编译好的库文件
+# 下载编译好的库文件和案例等数据
+推荐使用VS2013，下载后压缩包已经配置好环境和带好了OpenCV2.4.10静态库<br/>
 [CC4.0.3.rar-百度网盘](https://pan.baidu.com/s/1OQDmxWwVpVohER2YMqGbZQ)
 
 # 案例
