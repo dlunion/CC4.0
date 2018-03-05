@@ -18,7 +18,7 @@ Caffe for CC4.0-Windows，Caffe从没如此简单，更简单的Caffe C++接口�
 # 案例
 非常容易在C++里面实现自己的datalayer、losslayer等，自定义数据的输入等
 在prototxt中定义如下：
-``` json
+``` protobuf
 layer {
   name: "data"
   type: "CPP"
@@ -160,7 +160,7 @@ void main(){
 ```
 
 # SSD的train.prototxt的data层：
-``` json
+``` protobuf
 layer {
   name: "data"
   type: "CPP"
@@ -187,6 +187,6 @@ layer {
       emit_type: CENTER
     }
   }
-  ... 参考标准SSD的数据层部分即可，主要修改了type和cpp_param
+  #... 参考标准SSD的数据层部分即可，主要修改了type和cpp_param
 }
 ```
