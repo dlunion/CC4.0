@@ -3,7 +3,7 @@ Caffe for CC4.0，Caffe从没如此简单，更简单的Caffe C++接口，更方
 
 # 案例
 非常容易在C++里面实现自己的datalayer、losslayer等，自定义数据的输入等
-'''
+```
 //define my LstmDataLayer
 class LstmDataLayer : public DataLayer{
 public:
@@ -44,5 +44,4 @@ void main(){
     //solver->Restore("models/blstmctc_iter_12111.solverstate");
     solver->Solve();
 }
-
-'''
+```
