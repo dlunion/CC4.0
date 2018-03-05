@@ -1,6 +1,9 @@
 # CC4.0
 Caffe for CC4.0，Caffe从没如此简单，更简单的Caffe C++接口，更方便的研究深度学习
 
+# 下载编译好的库文件
+[CC4.0.3.rar-百度网盘](https://pan.baidu.com/s/1OQDmxWwVpVohER2YMqGbZQ)
+
 # 案例
 非常容易在C++里面实现自己的datalayer、losslayer等，自定义数据的输入等
 在prototxt中定义如下：
@@ -143,8 +146,10 @@ void main(){
     //solver->Restore("models/blstmctc_iter_12111.solverstate");
     solver->Solve();
 }
+```
 
 prototxt的data层：
+```
 layer {
   name: "data"
   type: "CPP"
