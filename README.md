@@ -3,7 +3,27 @@ Caffe for CC4.0，Caffe从没如此简单，更简单的Caffe C++接口，更方
 
 # 案例
 非常容易在C++里面实现自己的datalayer、losslayer等，自定义数据的输入等
+在prototxt中定义如下：
 ```
+layer {
+  name: "data"
+  type: "CPP"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  cpp_param {
+    type: "LstmDataLayer"
+    param_str: "batch_size: 16; width: 150; height: 60; num: 6" 
+  }
+}
+```
+
+```
+#include <cc_utils.h>
+#pragma comment(lib, "libcaffe.lib")
+
 //define my LstmDataLayer
 class LstmDataLayer : public DataLayer{
 public:
