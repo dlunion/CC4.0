@@ -20,6 +20,7 @@ layer {
 }
 ```
 
+cpp代码的写法：
 ```
 #include <cc_utils.h>
 #pragma comment(lib, "libcaffe.lib")
@@ -65,5 +66,32 @@ void main(){
     WPtr<Solver> solver = loadSolverFromPrototxt("solver-gpu.prototxt");
     //solver->Restore("models/blstmctc_iter_12111.solverstate");
     solver->Solve();
+}
+```
+
+前向运算
+```
+void test(){
+    //...
+    WPtr<Net> net = loadNetFromPrototxt("deploy.prototxt");
+    net->copyTrainedParamFromFile("models/blstmctc_iter_6044.caffemodel");
+
+    im.convertTo(im, CV_32F, 1/127.5, -1);
+    Blob* input = net->input_blob(0);
+    input->Reshape(1, 3, im.rows, im.cols);
+    net->Reshape();
+
+    Mat ms[3];
+    float* ptr = input->mutable_cpu_data();
+    for (int i = 0; i < 3; ++i){
+        ms[i] = Mat(input->height(), input->width(), CV_32F, ptr);
+        ptr += input->width()*input->height();
+    }
+    split(im, ms);
+    net->Forward();
+
+    Blob* out = net->output_blob(0);
+    //...
+    //out就是结果
 }
 ```
