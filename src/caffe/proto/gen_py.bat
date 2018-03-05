@@ -1,0 +1,1 @@
+protoc caffe.proto --python_out=./
