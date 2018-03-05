@@ -29,7 +29,9 @@ public:
         }
     }
 
-    virtual void setup(const char* name, const char* type, const char* param_str, int phase, Blob** bottom, int numBottom, Blob** top, int numTop){
+    virtual void setup(
+        const char* name, const char* type, const char* param_str, int phase, 
+        Blob** bottom, int numBottom, Blob** top, int numTop){
         //...
     }
 };
