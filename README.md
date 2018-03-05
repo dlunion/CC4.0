@@ -8,6 +8,8 @@ Caffe for CC4.0-Windows，Caffe从没如此简单，更简单的Caffe C++接口�
 3.能够轻易使用C++写训练过程或调用过程<br/>
 4.能够轻易自定义layer、自己实现数据层，不需要lmdb也能高效率训练<br/>
 5.能够在训练过程中对自定义layer进行调试查看中间结果<br/>
+6.支持LSTM不定长OCR（有案例），支持SSD更轻易的训练起来<br/>
+7.有了4.0的支持，很轻易的能够实现任何新的网络结构<br/>
 
 # 下载编译好的库文件和案例等数据
 推荐使用VS2013，下载后压缩包已经配置好环境和带好了OpenCV2.4.10静态库<br/>
@@ -179,103 +181,12 @@ layer {
       prob: 1
       resize_mode: WARP
       height: 300
-      width: 300
-      interp_mode: LINEAR
-      interp_mode: AREA
-      interp_mode: NEAREST
-      interp_mode: CUBIC
-      interp_mode: LANCZOS4
+      width: 300   
     }
     emit_constraint {
       emit_type: CENTER
     }
   }
-  data_param {
-    batch_size: 8
-  }
-  annotated_data_param {
-    batch_sampler {
-      max_sample: 1
-      max_trials: 1
-    }
-    batch_sampler {
-      sampler {
-        min_scale: 0.3
-        max_scale: 1.0
-        min_aspect_ratio: 0.5
-        max_aspect_ratio: 2.0
-      }
-      sample_constraint {
-        min_jaccard_overlap: 0.1
-      }
-      max_sample: 1
-      max_trials: 50
-    }
-    batch_sampler {
-      sampler {
-        min_scale: 0.3
-        max_scale: 1.0
-        min_aspect_ratio: 0.5
-        max_aspect_ratio: 2.0
-      }
-      sample_constraint {
-        min_jaccard_overlap: 0.3
-      }
-      max_sample: 1
-      max_trials: 50
-    }
-    batch_sampler {
-      sampler {
-        min_scale: 0.3
-        max_scale: 1.0
-        min_aspect_ratio: 0.5
-        max_aspect_ratio: 2.0
-      }
-      sample_constraint {
-        min_jaccard_overlap: 0.5
-      }
-      max_sample: 1
-      max_trials: 50
-    }
-    batch_sampler {
-      sampler {
-        min_scale: 0.3
-        max_scale: 1.0
-        min_aspect_ratio: 0.5
-        max_aspect_ratio: 2.0
-      }
-      sample_constraint {
-        min_jaccard_overlap: 0.7
-      }
-      max_sample: 1
-      max_trials: 50
-    }
-    batch_sampler {
-      sampler {
-        min_scale: 0.3
-        max_scale: 1.0
-        min_aspect_ratio: 0.5
-        max_aspect_ratio: 2.0
-      }
-      sample_constraint {
-        min_jaccard_overlap: 0.9
-      }
-      max_sample: 1
-      max_trials: 50
-    }
-    batch_sampler {
-      sampler {
-        min_scale: 0.3
-        max_scale: 1.0
-        min_aspect_ratio: 0.5
-        max_aspect_ratio: 2.0
-      }
-      sample_constraint {
-        max_jaccard_overlap: 1.0
-      }
-      max_sample: 1
-      max_trials: 50
-    }
-  }
+  ... 参考标准SSD的数据层部分即可，主要修改了type和cpp_param
 }
 ```
