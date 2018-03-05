@@ -44,4 +44,5 @@ void main(){
     //solver->Restore("models/blstmctc_iter_12111.solverstate");
     solver->Solve();
 }
+
 '''
