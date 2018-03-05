@@ -1,5 +1,13 @@
 # CC4.0
-Caffe for CC4.0，Caffe从没如此简单，更简单的Caffe C++接口，更方便的研究深度学习
+Caffe for CC4.0-Windows，Caffe从没如此简单，更简单的Caffe C++接口，更方便的研究深度学习
+只需要包含头文件cc_utils.h、和opencv头文件，即可轻易完成训练、调用等功能
+
+# 特性
+1.只需要一个头文件和一个依赖项libcaffe.lib
+2.只依赖opencv
+3.能够轻易使用C++写训练过程或调用过程
+4.能够轻易自定义layer、自己实现数据层，不需要lmdb也能高效率训练
+5.能够在训练过程中对自定义layer进行调试查看中间结果
 
 # 下载编译好的库文件
 [CC4.0.3.rar-百度网盘](https://pan.baidu.com/s/1OQDmxWwVpVohER2YMqGbZQ)
