@@ -34,7 +34,7 @@ layer {
 }
 ```
 
-cpp代码的写法：
+# cpp代码训练：
 ```
 #include <cc_utils.h>
 #pragma comment(lib, "libcaffe.lib")
@@ -83,7 +83,7 @@ void main(){
 }
 ```
 
-前向运算
+# 前向运算
 ```
 void test(){
     //...
@@ -110,7 +110,7 @@ void test(){
 }
 ```
 
-SSD训练
+# SSD的一步训练
 ```
 #include <cc_utils.h>
 using namespace cc;
@@ -159,7 +159,7 @@ void main(){
 }
 ```
 
-prototxt的data层：
+# SSD的train.prototxt的data层：
 ```
 layer {
   name: "data"
