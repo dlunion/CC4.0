@@ -1,6 +1,5 @@
 # CC4.0
-Caffe for CC4.0-Windows，Caffe从没如此简单，更简单的Caffe C++接口，更方便的研究深度学习
-只需要包含头文件cc_utils.h、和opencv头文件，即可轻易完成训练、调用等功能
+Caffe for CC4.0-Windows，简单的Caffe C++接口，方便简单而更深入的研究深度学习
 
 # 特性
 1.只需要一个头文件和一个依赖项libcaffe.lib<br/>
