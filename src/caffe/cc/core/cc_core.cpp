@@ -103,9 +103,19 @@ namespace cc{
 
 	////////////////////////////////////////////////////////////////////////////////////
 	DataLayer::DataLayer(){
-		this->batch_ = new Blob**[getBatchCacheSize()];
-		this->batch_flags_ = new bool[getBatchCacheSize()];
+		this->cacheBatchSize_ = getBatchCacheSize();
+		this->cacheBatchSize_ = max(1, cacheBatchSize_);
+		this->cacheBatchSize_ = min(1000, cacheBatchSize_);
+
+		this->batch_ = new Blob**[cacheBatchSize_];
+		this->batch_flags_ = new bool[cacheBatchSize_];
 		this->numTop_ = 0;
+
+		memset(this->batch_flags_, 0, sizeof(bool)*cacheBatchSize_);
+	}
+
+	void DataLayer::stopBatchLoader(){
+		stopWatcher();
 	}
 
 	int DataLayer::getBatchCacheSize(){
@@ -114,7 +124,7 @@ namespace cc{
 
 	DataLayer::~DataLayer(){
 		stopWatcher();
-		for (int i = 0; i < getBatchCacheSize(); ++i){
+		for (int i = 0; i < cacheBatchSize_; ++i){
 			for (int j = 0; j < this->numTop_; ++j)
 				releaseBlob(batch_[i][j]);
 
@@ -126,8 +136,9 @@ namespace cc{
 
 	void DataLayer::setupBatch(Blob** top, int numTop){
 		this->numTop_ = numTop;
-		for (int i = 0; i < getBatchCacheSize(); ++i){
+		for (int i = 0; i < cacheBatchSize_; ++i){
 			batch_[i] = new Blob*[numTop];
+			batch_flags_[i] = false;
 			for (int j = 0; j < numTop; ++j){
 				batch_[i][j] = newBlobByShape(top[j]->num(), top[j]->channel(), top[j]->height(), top[j]->width());
 			}
@@ -135,13 +146,13 @@ namespace cc{
 	}
 
 	void DataLayer::watcher(DataLayer* ptr){
-		for (int i = 0; i < ptr->getBatchCacheSize(); ++i){
-			ptr->batch_flags_[i] = true;
+		for (int i = 0; i < ptr->cacheBatchSize_; ++i){
 			ptr->loadBatch(ptr->batch_[i], ptr->numTop_);
+			ptr->batch_flags_[i] = true;
 		}
 
 		while (ptr->keep_run_watcher_){
-			for (int i = 0; i < ptr->getBatchCacheSize(); ++i){
+			for (int i = 0; i < ptr->cacheBatchSize_; ++i){
 				if (!ptr->batch_flags_[i]){
 					ptr->loadBatch(ptr->batch_[i], ptr->numTop_);
 					ptr->batch_flags_[i] = true;
@@ -159,15 +170,17 @@ namespace cc{
 	}
 
 	void DataLayer::stopWatcher(){
-		keep_run_watcher_ = false;
-		WaitForSingleObject((HANDLE)hsem_, -1);
+		if (keep_run_watcher_){
+			keep_run_watcher_ = false;
+			WaitForSingleObject((HANDLE)hsem_, -1);
+		}
 	}
 
 	void DataLayer::pullBatch(Blob** top, int numTop){
 		double tick = getTickCount();
 		double prevtime = tick;
 		while (true){
-			for (int i = 0; i < getBatchCacheSize(); ++i){
+			for (int i = 0; i < cacheBatchSize_; ++i){
 				if (batch_flags_[i]){
 					for (int j = 0; j < numTop; ++j)
 						top[j]->copyFrom(*batch_[i][j], false, true);
@@ -179,7 +192,7 @@ namespace cc{
 			Sleep(10);
 			float waitTime = (getTickCount() - tick) / getTickFrequency() * 1000;
 			float printTime = (getTickCount() - prevtime) / getTickFrequency() * 1000;
-			if (printTime > 3000){
+			if (printTime > 1000){
 				prevtime = tick;
 				printf("wait for data: %.2f ms\n", waitTime);
 			}

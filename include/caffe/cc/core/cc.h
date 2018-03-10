@@ -226,6 +226,7 @@ namespace cc{
 		virtual void setup(const char* name, const char* type, const char* param_str, int phase, Blob** bottom, int numBottom, Blob** top, int numTop);
 		virtual void forward(Blob** bottom, int numBottom, Blob** top, int numTop);
 		virtual void reshape(Blob** bottom, int numBottom, Blob** top, int numTop){}
+		void stopBatchLoader();
 
 	private:
 		void setupBatch(Blob** top, int numTop);
@@ -240,6 +241,7 @@ namespace cc{
 		bool* batch_flags_;
 		Blob*** batch_;
 		int numTop_;
+		int cacheBatchSize_;
 	};
 
 	class CCAPI SSDDataLayer : public DataLayer{
