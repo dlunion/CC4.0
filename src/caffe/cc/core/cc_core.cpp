@@ -198,7 +198,7 @@ namespace cc{
 			float printTime = (getTickCount() - prevtime) / getTickFrequency() * 1000;
 			if (printTime > waitForDataTime()){
 				prevtime = getTickCount();
-				printf("wait for data: %.2f ms\n", waitTime);
+				LOG(INFO) << "wait for data: " << waitTime << " ms";
 			}
 		}
 	}
