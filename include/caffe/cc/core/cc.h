@@ -227,6 +227,7 @@ namespace cc{
 		virtual void forward(Blob** bottom, int numBottom, Blob** top, int numTop);
 		virtual void reshape(Blob** bottom, int numBottom, Blob** top, int numTop){}
 		void stopBatchLoader();
+		virtual int waitForDataTime();
 
 	private:
 		void setupBatch(Blob** top, int numTop);

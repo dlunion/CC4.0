@@ -145,6 +145,10 @@ namespace cc{
 		}
 	}
 
+	int DataLayer::waitForDataTime(){
+		return 1000;
+	}
+
 	void DataLayer::watcher(DataLayer* ptr){
 		for (int i = 0; i < ptr->cacheBatchSize_; ++i){
 			ptr->loadBatch(ptr->batch_[i], ptr->numTop_);
@@ -192,8 +196,8 @@ namespace cc{
 			Sleep(10);
 			float waitTime = (getTickCount() - tick) / getTickFrequency() * 1000;
 			float printTime = (getTickCount() - prevtime) / getTickFrequency() * 1000;
-			if (printTime > 1000){
-				prevtime = tick;
+			if (printTime > waitForDataTime()){
+				prevtime = getTickCount();
 				printf("wait for data: %.2f ms\n", waitTime);
 			}
 		}
@@ -227,6 +231,7 @@ namespace cc{
 	}
 
 	SSDDataLayer::~SSDDataLayer(){
+		stopBatchLoader();
 		delete ((std::vector<caffe::BatchSampler>*)this->batch_samplers_);
 		delete ((caffe::DataTransformer<float>*)this->data_transformer_);
 		delete ((caffe::TransformationParameter*)this->transform_param_);
