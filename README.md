@@ -20,7 +20,7 @@ CUDNN版本：5.0<br/>
 
 # 下载编译好的库文件和案例等数据
 推荐使用VS2013，下载后压缩包已经配置好环境和带好了OpenCV2.4.10静态库<br/>
-[CC4.0.3.rar-百度网盘](https://pan.baidu.com/s/1OQDmxWwVpVohER2YMqGbZQ)
+<del>[CC4.0.3.rar-百度网盘](https://pan.baidu.com/s/1OQDmxWwVpVohER2YMqGbZQ)</del>，里面的依赖可以用，但是头文件和libcaffe.dll不可用（因为有几个bug），等待重新编译并上传
 
 # 案例
 非常容易在C++里面实现自己的datalayer、losslayer等，自定义数据的输入等
