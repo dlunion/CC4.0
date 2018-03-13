@@ -439,7 +439,7 @@ namespace cc{
 		volatile semaphore* semap = pool->cacheSemaphoreGetResult[cursor];
 		((Mat*)pool->cacheImgs)[cursor] = im;
 		pool->cacheBlobNames[cursor] = (char*)blob_name;
-		pool->operType[cursor] = operType_Forward;
+		pool->cacheOperType[cursor] = operType_Forward;
 		pool->job_cursor++;
 		leaveCriticalSection(&pool->jobCS);
 
