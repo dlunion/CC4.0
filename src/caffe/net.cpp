@@ -810,12 +810,13 @@ void Net<Dtype>::CopyTrainedLayersFrom(const NetParameter& param) {
         Blob<Dtype> source_blob;
         const bool kReshape = true;
         source_blob.FromProto(source_layer.blobs(j), kReshape);
-        LOG(FATAL) << "Cannot copy param " << j << " weights from layer '"
+        LOG(INFO) << "Cannot copy param " << j << " weights from layer '"
             << source_layer_name << "'; shape mismatch.  Source param shape is "
             << source_blob.shape_string() << "; target param shape is "
             << target_blobs[j]->shape_string() << ". "
             << "To learn this layer's parameters from scratch rather than "
             << "copying from a saved net, rename the layer.";
+		continue;
       }
       const bool kReshape = false;
       target_blobs[j]->FromProto(source_layer.blobs(j), kReshape);

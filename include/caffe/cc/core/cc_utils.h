@@ -150,7 +150,7 @@ namespace cc{
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	struct BlobData{
+	struct CCAPI BlobData{
 		float* list;
 		int num;
 		int channels;
@@ -242,7 +242,7 @@ namespace cc{
 	typedef void TaskPool;
 	CCAPI TaskPool* CCCALL buildPool(Classifier* model, int gpu_id, int batch_size);
 	CCAPI ObjectDetectList* CCCALL forwardSSDByTaskPool(TaskPool* pool, const Mat& img, const char* blob_name);
-	CCAPI BlobData* CCCALL forwardByTaskPool(TaskPool* pool, const Mat& img, const char* blob_name);
+	CCAPI bool CCCALL forwardByTaskPool(TaskPool* pool, const Mat& img, const char* blob_name, BlobData* inplace_blobData);
 	CCAPI void CCCALL releaseTaskPool(TaskPool* pool);
 	CCAPI void CCCALL disableLogPrintToConsole();
 	CCAPI const char* CCCALL getCCVersionString();

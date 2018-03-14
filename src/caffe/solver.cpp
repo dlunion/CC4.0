@@ -30,6 +30,7 @@ static std::mutex loss_mutex;
 static volatile bool g_change_loss = true;
 static volatile bool g_keep_run = false;
 static HANDLE g_exit_show_samp;
+static volatile bool g_do_snapshot_signal = false;
 
 using namespace cv;
 
@@ -46,6 +47,11 @@ string fcCurrentTimeFileString()
 template<typename Dtype>
 void Solver<Dtype>::SetActionFunction(ActionCallback func) {
   action_request_function_ = func;
+}
+
+template<typename Dtype>
+void Solver<Dtype>::postSnapshotSignal(){
+	g_do_snapshot_signal = true;
 }
 
 template<typename Dtype>
@@ -439,7 +445,8 @@ void Solver<Dtype>::Step(int iters) {
     if ((param_.snapshot()
          && iter_ % param_.snapshot() == 0
          && Caffe::root_solver()) ||
-         (request == SolverAction::SNAPSHOT)) {
+		 (request == SolverAction::SNAPSHOT) || g_do_snapshot_signal) {
+	  g_do_snapshot_signal = false;
       Snapshot();
     }
     if (SolverAction::STOP == request) {

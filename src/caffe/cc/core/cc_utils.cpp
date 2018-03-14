@@ -318,7 +318,7 @@ namespace cc{
 				pool->model->forward(pool->recNum, (Mat*)pool->recImgs);
 
 				if (pool->operType[0] == operType_Detection){
-
+					printf("operType_Detection\n");
 					WPtr<BlobData> blob = new BlobData();
 					copyFromBlob(blob, pool->model->getBlob((const char*)pool->blobNames[0]));
 
@@ -339,7 +339,6 @@ namespace cc{
 				}
 				else{
 					for (int i = 0; i < pool->recNum; ++i){
-						pool->outBlobs[i] = new BlobData();
 						copyOneFromBlob((BlobData*)pool->outBlobs[i], pool->model->getBlob((const char*)pool->blobNames[i]), i);
 					}
 				}
@@ -420,19 +419,20 @@ namespace cc{
 		return (ObjectDetectList*)result;
 	}
 
-	CCAPI BlobData* CCCALL forwardByTaskPool(TaskPool* pool_, const Mat& img, const char* blob_name){
+	CCAPI bool CCCALL forwardByTaskPool(TaskPool* pool_, const Mat& img, const char* blob_name, BlobData* inplace_blobData){
+	//CCAPI BlobData* CCCALL forwardByTaskPool(TaskPool* pool_, const Mat& img, const char* blob_name){
 		_TaskPool* pool = (_TaskPool*)pool_;
-		if (pool == 0) return 0;
-		if (img.empty()) return 0;
-		if (!pool->flag_run) return 0;
-
+		if (pool == 0) return false;
+		if (img.empty()) return false;
+		if (!pool->flag_run) return false;
+		if (inplace_blobData == 0) return false;
 
 		Mat im;
 		img.copyTo(im);
-		if (im.empty()) return 0;
+		if (im.empty()) return false;
 
 		waitSemaphore(pool->semaphoreWait);
-		if (!pool->flag_run) return 0;
+		if (!pool->flag_run) return false;
 
 		enterCriticalSection(&pool->jobCS);
 		int cursor = pool->job_cursor;
@@ -440,13 +440,13 @@ namespace cc{
 		((Mat*)pool->cacheImgs)[cursor] = im;
 		pool->cacheBlobNames[cursor] = (char*)blob_name;
 		pool->cacheOperType[cursor] = operType_Forward;
+		pool->outBlobs[cursor] = inplace_blobData;
 		pool->job_cursor++;
 		leaveCriticalSection(&pool->jobCS);
 
 		waitSemaphore((semaphore*)semap);
-		volatile BlobData* result = pool->outBlobs[cursor];
 		releaseSemaphore(pool->semaphoreGetResultFinish, 1);
-		return (BlobData*)result;
+		return true;
 	}
 
 	CCAPI void CCCALL releaseTaskPool(TaskPool* pool_){

@@ -73,6 +73,18 @@ namespace cc{
 		this->signalHandler_ = &singalHandler;
 	}
 
+	void Solver::setBaseLearningRate(float rate){
+		ptr->param_.set_base_lr(rate);
+	}
+
+	float Solver::getBaseLearningRate(){
+		return ptr->param_.base_lr();
+	}
+
+	void Solver::postSnapshotSignal(){
+		ptr->postSnapshotSignal();
+	}
+
 	Solver::~Solver(){
 	}
 

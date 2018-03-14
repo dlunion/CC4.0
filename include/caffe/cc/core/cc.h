@@ -1,5 +1,5 @@
 /*
-	CC深度学习库（Caffe）V4.0
+CC深度学习库（Caffe）V4.0
 */
 
 #ifndef CC_H
@@ -58,7 +58,7 @@ namespace cc{
 		void Reshape(int numShape, int* shapeDims);
 		void ReshapeLike(const Blob& other);
 		void copyFrom(const Blob& other, bool copyDiff = false, bool reshape = false);
-		
+
 		//存在莫名的bug，训练效果很差 ---2018年2月25日 00:30:46 Hope
 		void setDataRGB(int numIndex, const Mat& data);
 
@@ -124,6 +124,9 @@ namespace cc{
 		int max_iter();
 		void Solve();
 		void installActionSignalOperator();
+		void setBaseLearningRate(float rate);
+		float getBaseLearningRate();
+		void postSnapshotSignal();
 
 #ifdef USE_PROTOBUF
 		caffe::SolverParameter& solver_param();
@@ -181,7 +184,7 @@ namespace cc{
 	private:
 		void* native_;
 	};
-	 
+
 	class CCAPI AbstractCustomLayerCPP{
 	public:
 		virtual void setup(const char* name, const char* type, const char* param_str, int phase, vector<Blob*>& bottom, vector<Blob*>& top) = 0;
