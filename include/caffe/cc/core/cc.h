@@ -1,5 +1,5 @@
 /*
-CC深度学习库（Caffe）V4.0
+CC娣卞害瀛︿範搴擄紙Caffe锛塚4.0
 */
 
 #ifndef CC_H
@@ -58,8 +58,6 @@ namespace cc{
 		void Reshape(int numShape, int* shapeDims);
 		void ReshapeLike(const Blob& other);
 		void copyFrom(const Blob& other, bool copyDiff = false, bool reshape = false);
-
-		//存在莫名的bug，训练效果很差 ---2018年2月25日 00:30:46 Hope
 		void setDataRGB(int numIndex, const Mat& data);
 
 	private:
