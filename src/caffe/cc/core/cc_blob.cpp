@@ -32,8 +32,6 @@ namespace cc{
 		return blob->ccBlob();
 	}
 
-	//存在莫名的bug，训练效果很差
-#if 1
 	void Blob::setDataRGB(int numIndex, const Mat& data){
 		CHECK(!data.empty()) << "data is empty";
 		CHECK_EQ(CV_MAT_DEPTH(data.type()), CV_32F) << "data type not match.";
@@ -55,7 +53,6 @@ namespace cc{
 		split(udata, mats);
 		CHECK_EQ((float*)mats[0].data, input_data) << "error, split pointer fail.";
 	}
-#endif
 
 	int Blob::shape(int index) const {
 		return ptr->shape(index);
