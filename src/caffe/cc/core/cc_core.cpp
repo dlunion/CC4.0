@@ -15,9 +15,46 @@
 #include <thread>
 #include "caffe/layers/cpp_layer.hpp"
 
+#include <google/protobuf/text_format.h>
+#include <io.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/gzip_stream.h>
+#include <google/protobuf/text_format.h>
+#include <fcntl.h>
+
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/repeated_field.h>
+#include <google/protobuf/wire_format_lite.h>
+#include <google/protobuf/io/strtod.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/unknown_field_set.h>
+#include <google/protobuf/descriptor.pb.h>
+#include <google/protobuf/io/tokenizer.h>
+#include <google/protobuf/any.h>
+#include <google/protobuf/stubs/stringprintf.h>
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/stl_util.h>
+
+#undef GetMessage
+
 using namespace std;
 using namespace cc;
 using namespace cv;
+using namespace google::protobuf;
+
+using google::protobuf::io::FileInputStream;
+using google::protobuf::io::FileOutputStream;
+using google::protobuf::io::ZeroCopyInputStream;
+using google::protobuf::io::CodedInputStream;
+using google::protobuf::io::ZeroCopyOutputStream;
+using google::protobuf::io::CodedOutputStream;
+using google::protobuf::io::IstreamInputStream;
+using google::protobuf::io::GzipInputStream;
 
 static struct LayerInfo{
 	createLayerFunc creater;
@@ -70,6 +107,110 @@ static void CCCALL CustomLayerRelease(CustomLayerInstance instance){
 }
 
 namespace cc{
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	CCString::CCString(){
+		buffer = 0;
+		length = 0;
+		capacity_size = 0;
+	}
+
+	CCString::~CCString(){
+		release();
+	}
+
+	void CCString::release(){
+		if (buffer) delete []buffer;
+		length = 0;
+		buffer = 0;
+		capacity_size = 0;
+	}
+
+	CCString::CCString(const char* other){
+		buffer = 0;
+		length = 0;
+		capacity_size = 0;
+		set(other);
+	}
+
+	CCString::CCString(const CCString& other){
+		buffer = 0;
+		length = 0;
+		capacity_size = 0;
+		set(other.get());
+	}
+
+	char* CCString::get() const{
+		return length == 0 ? "" : buffer;
+	}
+
+	CCString CCString::operator + (const CCString& str){
+		CCString newstr = *this;
+		newstr.append(str.c_str(), str.len());
+		return newstr;
+	}
+
+	CCString CCString::operator+(const char* str){
+		CCString newstr = *this;
+		newstr.append(str);
+		return newstr;
+	}
+
+	CCString& CCString::operator += (const CCString& str){
+		append(str.c_str());
+		return *this;
+	}
+
+	CCString& CCString::operator+=(const char* str){
+		append(str);
+		return *this;
+	}
+
+	void CCString::append(const char* str, int strlength){
+		int slen = strlength < 0 ? (str ? strlen(str) : 0) : strlength;
+		if (slen == 0)
+			return;
+
+		int copyoffset = this->length;
+		if (this->length + slen + 1 > capacity_size){
+			char* oldbuffer = buffer;
+			int oldlength = this->length;
+			capacity_size = (this->length + slen)*1.3 + 1;
+			buffer = new char[capacity_size];
+
+			if (oldbuffer){
+				if (oldlength > 0)
+					memcpy(buffer, oldbuffer, oldlength);
+
+				delete []oldbuffer;
+				copyoffset = oldlength;
+			}
+		}
+
+		length += slen;
+		memcpy(buffer + copyoffset, str, slen);
+		buffer[length] = 0;
+	}
+	
+	void CCString::set(const char* str, int strlength){
+		int slen = strlength < 0 ? (str ? strlen(str) : 0) : strlength;
+		if (slen == 0){
+			length = 0;
+			return;
+		}
+
+		if (slen + 1 > capacity_size){
+			release();
+			capacity_size = slen*1.3+1;
+			buffer = new char[capacity_size];
+		}
+
+		length = slen;
+		memcpy(buffer, str, slen);
+		buffer[length] = 0;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////
 
 	CCAPI void CCCALL installLayer(const char* type, createLayerFunc creater, releaseLayerFunc release){
 		if (g_custom_layers.find(type) != g_custom_layers.end()){
@@ -570,4 +711,765 @@ namespace cc{
 		return caffe::WriteProtoToBinaryFile(proto, filename);
 	}
 #endif
+
+
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	enum MessagePathNodeType{
+		MessagePathNodeType_Key,
+		MessagePathNodeType_GetElement,
+		MessagePathNodeType_GetSize
+	};
+
+	struct MessagePathNode{
+		string name;
+		int index;			//repeated index
+		MessagePathNodeType type;
+
+		MessagePathNode(){
+			index = 0;
+		}
+	};
+
+	void Value::init(){
+		enumIndex = 0;
+		enumRepIndex = 0;
+		repeated = false;
+		numElements = 0;
+		type = ValueType_Null;
+		stringVal = 0;
+	}
+
+#define DEFCONSTRUCT(cpptype, utype)										\
+	Value::Value(cpptype* repeatedValue, int length){						\
+		init();																\
+		repeated = true;													\
+		type = ValueType_##utype;											\
+		numElements = length;												\
+		cpptype##RepVal = 0;												\
+		if (length > 0){													\
+			cpptype##RepVal = new cpptype[length];							\
+			memcpy(cpptype##RepVal, repeatedValue, sizeof(cpptype)*length);	\
+		}																	\
+	}
+
+	Value::Value(cc::CCString* repeatedValue, int length){
+		init();																
+		repeated = true;													
+		type = ValueType_String;											
+		numElements = length;												
+		stringRepVal = 0;												
+		if (length > 0){													
+			stringRepVal = new cc::CCString[length];
+			for (int i = 0; i < length; ++i)
+				stringRepVal[i] = repeatedValue[i];
+		}																	
+	}
+
+	Value::Value(cc::CCString* repeatedValue, int* enumIndex, int length){
+		init();
+		repeated = true;
+		type = ValueType_String;
+		numElements = length;
+		enumRepVal = 0;
+		enumRepIndex = 0;
+		if (length > 0){
+			enumRepVal = new cc::CCString[length];
+			enumRepIndex = new int[length];
+			for (int i = 0; i < length; ++i){
+				enumRepVal[i] = repeatedValue[i];
+				enumRepIndex[i] = enumIndex[i];
+			}
+		}
+	}
+
+	Value::Value(MessageHandle* repeatedValue, int length){
+		init();
+		repeated = true;
+		type = ValueType_Message;
+		numElements = length;
+		messageRepVal = 0;
+		if (length > 0){
+			messageRepVal = new MessageHandle[length];
+			for (int i = 0; i < length; ++i){
+				messageRepVal[i] = repeatedValue[i];
+			}
+		}
+	}
+
+	DEFCONSTRUCT(float, Float);
+	DEFCONSTRUCT(cint32, Int32);
+	DEFCONSTRUCT(cuint32, Uint32);
+	DEFCONSTRUCT(cint64, Int64);
+	DEFCONSTRUCT(cuint64, Uint64);
+	DEFCONSTRUCT(double, Double);
+	DEFCONSTRUCT(bool, Bool);
+
+	Value::Value(int val){ init(); int32Val = val; type = ValueType_Int32; }
+	Value::Value(cuint32 val){ init(); uint32Val = val; type = ValueType_Uint32; }
+	Value::Value(__int64 val){ init(); int64Val = val; type = ValueType_Int64; }
+	Value::Value(cuint64 val){ init(); uint64Val = val; type = ValueType_Uint64; }
+	Value::Value(float val){ init(); floatVal = val; type = ValueType_Float; }
+	Value::Value(double val){ init(); doubleVal = val; type = ValueType_Double; }
+	Value::Value(bool val){ init(); boolVal = val; type = ValueType_Bool; }
+	Value::Value(const char* val){ init(); stringVal = new cc::CCString();  *stringVal = val; this->type = ValueType_String; }
+	Value::Value(const char* enumName, int enumIndex){ init(); enumVal = new cc::CCString(); *enumVal = enumName; this->enumIndex = enumIndex; this->type = ValueType_Enum; }
+	Value::Value(MessageHandle message){ init(); messageVal = message; this->type = ValueType_Message; }
+	Value::Value(){ init(); }
+
+#define ReturnConvt(strcvtmethod)									\
+	if (!this->repeated){											\
+	switch (type){													\
+	case ValueType_Bool:   return boolVal;							\
+	case ValueType_Int32:   return int32Val;						\
+	case ValueType_Int64:   return int64Val;						\
+	case ValueType_Float:   return floatVal;						\
+	case ValueType_Double:   return doubleVal;						\
+	case ValueType_Uint32:   return uint32Val;						\
+	case ValueType_Uint64:   return uint64Val;						\
+	case ValueType_String:  return strcvtmethod(stringVal->c_str());	\
+	case ValueType_Enum:    return enumIndex;							\
+	default:  return 0;	}												\
+	}else{																\
+		switch (type){													\
+	case ValueType_Bool:   return boolRepVal[index];						\
+	case ValueType_Int32:   return cint32RepVal[index];						\
+	case ValueType_Int64:   return cint64RepVal[index];						\
+	case ValueType_Float:   return floatRepVal[index];						\
+	case ValueType_Double:   return doubleRepVal[index];					\
+	case ValueType_Uint32:   return cuint32RepVal[index];					\
+	case ValueType_Uint64:   return cuint64RepVal[index];					\
+	case ValueType_String:  return strcvtmethod(stringRepVal[index].c_str());	\
+	case ValueType_Enum:    return enumRepIndex[index];							\
+	default:  return 0;												\
+	}																	\
+	}
+
+	int Value::getInt(int index){ ReturnConvt(atoi); }
+	cuint32 Value::getUint(int index){ ReturnConvt(atoi); }
+	__int64 Value::getInt64(int index){ ReturnConvt(atoll); }
+	cuint64 Value::getUint64(int index){ ReturnConvt(atoll); }
+	float Value::getFloat(int index){ ReturnConvt(atof); }
+	double Value::getDouble(int index){ ReturnConvt(atof); }
+	cc::CCString Value::getString(int index){
+		if (!this->repeated){
+			char val[1000];
+			switch (type){
+			case ValueType_Bool:   sprintf(val, "%s", boolVal ? "true" : "false"); break;
+			case ValueType_Int32:  sprintf(val, "%d", int32Val); break;
+			case ValueType_Int64:  sprintf(val, "%I64d", int64Val); break;
+			case ValueType_Float:  sprintf(val, "%f", floatVal); break;
+			case ValueType_Double: sprintf(val, "%lf", doubleVal); break;
+			case ValueType_Uint32: sprintf(val, "%u", uint32Val); break;
+			case ValueType_Uint64: sprintf(val, "%uI64d", uint64Val); break;
+			case ValueType_String: return stringVal ? *stringVal : ""; break;
+			case ValueType_Enum: return enumVal ? *enumVal : ""; break;
+			case ValueType_Message:{
+				string out;
+				if (messageVal)
+					google::protobuf::TextFormat::PrintToString(*(Message*)messageVal, &out);
+				return out.c_str();
+			}
+			default:  return "";
+			}
+			return val;
+		}
+		else{
+			char val[1000] = {0};
+			string outval;
+			switch (type){
+			case ValueType_Bool:   sprintf(val, "%s", boolRepVal[index] ? "true" : "false"); outval = val; break;
+			case ValueType_Int32:  sprintf(val, "%d", cint32RepVal[index]); outval = val; break;
+			case ValueType_Int64:  sprintf(val, "%I64d", cint64RepVal[index]); outval = val; break;
+			case ValueType_Float:  sprintf(val, "%f", floatRepVal[index]); outval = val; break;
+			case ValueType_Double: sprintf(val, "%lf", doubleRepVal[index]); outval = val; break;
+			case ValueType_Uint32: sprintf(val, "%u", cuint32RepVal[index]); outval = val; break;
+			case ValueType_Uint64: sprintf(val, "%uI64d", cuint64RepVal[index]); outval = val; break;
+			case ValueType_String: outval = stringRepVal ? stringRepVal[index].c_str() : ""; break;
+			case ValueType_Enum: outval = enumRepVal ? enumRepVal[index].c_str() : ""; break;
+			case ValueType_Message:{
+				string v;
+				if (messageRepVal && messageRepVal[index])
+					google::protobuf::TextFormat::PrintToString(*(Message*)messageRepVal[index], &v);
+				return v.c_str();
+			}
+			default: 
+				break;
+			}
+			return outval.c_str();
+		}
+	}
+
+	cc::CCString Value::toString(){
+		if (!this->repeated){
+			return getString();
+		}
+		else{
+			cc::CCString out;
+			for (int i = 0; i < numElements; ++i){
+				out += getString(i) + "\n";
+			}
+			return out.c_str();
+		}
+	}
+	
+	void Value::release(){
+		if (!repeated){
+			if (type == ValueType_String && stringVal){
+				delete stringVal;
+				stringVal = 0;
+			}
+			else if (type == ValueType_Enum && enumVal){
+				delete enumVal;
+				enumVal = 0;
+			}
+		}
+		else{
+#define DefDeleteListFunc(cpptype, utype)								\
+			else if (type == ValueType_##utype && cpptype##RepVal){		\
+				delete[] cpptype##RepVal;								\
+				cpptype##RepVal = 0;									\
+				type = ValueType_Null;									\
+			}
+
+			if (0){}
+			DefDeleteListFunc(float, Float)
+			DefDeleteListFunc(cint32, Int32)
+			DefDeleteListFunc(cuint32, Uint32)
+			DefDeleteListFunc(cint64, Int64)
+			DefDeleteListFunc(cuint64, Uint64)
+			DefDeleteListFunc(double, Double)
+			DefDeleteListFunc(string, String)
+			
+			else if (type == ValueType_Enum && enumRepVal && enumRepIndex){
+				delete[] enumRepVal;
+				delete[] enumRepIndex;
+				enumRepVal = 0;
+				enumRepIndex = 0;
+				type = ValueType_Null;
+			}
+			else if (type == ValueType_Message && messageRepVal){
+				delete[] messageRepVal;
+				messageRepVal = 0;
+			}
+		}
+		stringVal = 0;
+		type = ValueType_Null;
+	}
+
+	void Value::copyFrom(const Value& other){
+		release();
+
+		memcpy(this, &other, sizeof(Value));
+		if (!other.repeated){
+			this->type = other.type;
+			if (this->type == ValueType_String){
+				this->stringVal = new cc::CCString();
+				*this->stringVal = *other.stringVal;
+			}
+			else if (this->type == ValueType_Enum){
+				this->enumVal = new cc::CCString();
+				*this->enumVal = *other.enumVal;
+			}
+		}
+		else{
+			if (other.numElements > 0){
+				if (this->type == ValueType_String){
+					this->stringRepVal = new cc::CCString[other.numElements];
+					for (int i = 0; i < other.numElements; ++i)
+						this->stringRepVal[i] = other.stringRepVal[i];
+				}
+				else if (this->type == ValueType_Enum){
+					this->enumRepVal = new cc::CCString[other.numElements];
+					for (int i = 0; i < other.numElements; ++i)
+						this->enumRepVal[i] = other.enumRepVal[i];
+
+					this->enumRepIndex = new int[other.numElements];
+					memcpy(this->enumRepIndex, other.enumRepIndex, sizeof(int)*other.numElements);
+				}
+				else if (this->type == ValueType_Message){
+					this->messageRepVal = new MessageHandle[other.numElements];
+					for (int i = 0; i < other.numElements; ++i)
+						this->messageRepVal[i] = other.messageRepVal[i];
+				}
+
+#define DefCopyFunc(cpptype, utype)																					\
+				else if (this->type == ValueType_##utype){															\
+					this->cpptype##RepVal = new cpptype[other.numElements];											\
+					memcpy(this->cpptype##RepVal, other.cpptype##RepVal, sizeof(cpptype)*other.numElements);		\
+				}
+
+				DefCopyFunc(float, Float)
+				DefCopyFunc(double, Double)
+				DefCopyFunc(cint32, Int32)
+				DefCopyFunc(cuint32, Uint32)
+				DefCopyFunc(cint64, Int64)
+				DefCopyFunc(cuint64, Uint64)
+			}
+			else{
+				this->numElements = 0;
+				this->stringRepVal = 0;
+			}
+		}
+	}
+
+	Value& Value::operator=(const Value& other){ copyFrom(other); return *this; }
+	Value::Value(const Value& other){ init(); copyFrom(other); }
+	Value::~Value(){ release(); }
+
+	struct MessagePath{
+		string strpath;
+		vector<MessagePathNode> nodes;
+	};
+
+	void MessagePropertyList::init(){
+		this->list = 0;
+		this->count = 0;
+		this->capacity_count = 0;
+	}
+
+	MessagePropertyList::MessagePropertyList(const MessagePropertyList& other){
+		init();
+		copyFrom(other);
+	}
+
+	MessagePropertyList& MessagePropertyList::operator = (const MessagePropertyList& other){
+		copyFrom(other);
+		return *this;
+	}
+
+	MessagePropertyList::MessagePropertyList(){
+		init();
+	}
+	
+	void MessagePropertyList::copyFrom(const MessagePropertyList& other){
+		resize(other.count);
+
+		for (int i = 0; i < other.count; ++i)
+			this->list[i] = other.list[i];
+	}
+
+	void MessagePropertyList::resize(int size){
+		if (size <= 0){
+			this->count = 0;
+			return;
+		}
+
+		if (size > this->capacity_count){
+			MessageProperty* old = this->list;
+			int oldCount = count;
+
+			this->count = size;
+			this->capacity_count = size;
+			this->list = new MessageProperty[size];
+
+			if (old){
+				int num = min(oldCount, count);
+				for (int i = 0; i < num; ++i)
+					this->list[i] = old[i];
+
+				delete[] old;
+			}
+		}
+		else{
+			this->count = size;
+		}
+	}
+
+	void MessagePropertyList::release(){
+		if (this->list)
+			delete[] this->list;
+		this->count = 0;
+		this->list = 0;
+		this->capacity_count = 0;
+	}
+
+	MessagePropertyList::~MessagePropertyList(){
+		release();
+	}
+
+	//param@				--> getSize
+	//param[0].name			--> getItem(0).name
+	//param.name			--> name
+	MessagePath parsePath(const char* path){
+		MessagePath empty;
+		if (!path) return empty;
+
+		string s = path;
+		if (s.empty()) return empty;
+		MessagePath messagePath;
+
+		char* str = &s[0];
+		while (true){
+			char* p = strchr(str, '.');
+			if (p) *p = 0;
+		
+			int len = strlen(str);
+			if (*str == 0 || len == 0){
+				printf("path was worng: %s\n", path);
+				return empty;
+			}
+
+			char* lastToken = str + len - 1;
+			MessagePathNode node;
+			if (*lastToken == '@'){
+				node.type = MessagePathNodeType_GetSize;
+				*lastToken = 0;
+				node.name = str;
+			}
+			else if (*lastToken == ']'){
+				*lastToken = 0;
+				char* prevToken = strrchr(str, '[');
+				if (!prevToken){
+					printf("missing [\n");
+					return empty;
+				}
+
+				*prevToken = 0;
+				node.index = atoi(prevToken + 1);
+				node.type = MessagePathNodeType_GetElement;
+				node.name = str;
+			}
+			else{
+				//normal
+				node.name = str;
+				node.type = MessagePathNodeType_Key;
+			}
+
+			messagePath.nodes.emplace_back(node);
+			if (!p) break;
+			str = p + 1;
+		}
+
+		messagePath.strpath = path;
+		return messagePath;
+	}
+
+	static bool getValue2(const Message* message, MessagePath& path, int ind, Value& val){
+		const Descriptor* descriptor = message->GetDescriptor();
+		const Reflection* reflection = message->GetReflection();
+		std::vector<const FieldDescriptor*> fields;
+		reflection->ListFields(*message, &fields);
+
+		bool lastNode = ind == (int)path.nodes.size() - 1;
+		MessagePathNode& node = path.nodes[ind];
+	
+		for (int i = 0; i < fields.size(); ++i){
+			auto item = fields[i];
+			if (item->name().compare(node.name) == 0){
+
+				if (!lastNode){
+					if (node.type == MessagePathNodeType_GetElement){
+						if (!item->is_repeated()){
+							printf("repeated not match: %s[%d], is not repeated.\n", node.name.c_str(), node.index);
+							return false;
+						}
+
+						int size = 0;
+						if (item->is_repeated())
+							size = reflection->FieldSize(*message, item);
+						else if (reflection->HasField(*message, item))
+							size = 1;
+
+						if (node.index < 0 || node.index >= size){
+							printf("index out of range node.index[=%d] < size[=%d] && node.index[=%d] >= 0.\n", node.index, size, node.index);
+							return false;
+						}
+
+						const Message& msg = reflection->GetRepeatedMessage(*message, item, node.index);
+						return getValue2(&msg, path, ind + 1, val);
+					}
+					else if (node.type == MessagePathNodeType_GetSize){
+						printf("syntax error: %s\n", path.strpath.c_str());
+						return false;
+					}
+					else{
+						if (item->is_repeated()){
+							printf("type not match: %s. is a repeated\n", node.name.c_str());
+							return false;
+						}
+
+						const Message& msg = reflection->GetMessage(*message, item);
+						return getValue2(&msg, path, ind + 1, val);
+					}
+				}
+				else{
+					int size = 0;
+					if (item->is_repeated())
+						size = reflection->FieldSize(*message, item);
+					else if (reflection->HasField(*message, item))
+						size = 1;
+
+					//没有后续路径，根节点
+					if (node.type == MessagePathNodeType_GetSize){
+						val = size;
+						return true;
+					}
+
+					bool isgetElement = node.type == MessagePathNodeType_GetElement;
+					bool isrepeated = item->is_repeated();
+
+					if (isgetElement && !isrepeated){
+						printf("type not match: item.repeated: %s != node.type is repeated: %s\n", 
+							item->is_repeated() ? "True" : "False", 
+							isgetElement ? "True" : "False");
+						return false;
+					}
+				
+					if (isrepeated && isgetElement){
+						if (node.index < 0 || node.index >= size){
+							printf("index out of range node.index[=%d] < size[=%d] && node.index[=%d] >= 0.\n", node.index, size, node.index);
+							return false;
+						}
+					}
+
+	#define SetValueFromField(cpptype, method, localtype)												\
+						case FieldDescriptor::CPPTYPE_##cpptype:										\
+						if (isgetElement){																\
+							val = reflection->GetRepeated##method(*message, item, node.index); }		\
+						else{																			\
+							if (isrepeated){															\
+								vector<localtype> buffer(size);											\
+								for (int k = 0; k < size; ++k)											\
+									buffer[k] = reflection->GetRepeated##method(*message, item, k);		\
+									val = size > 0 ? Value((localtype*)&buffer[0], size) : Value((localtype*)0, 0);		\
+							}																			\
+							else{																		\
+								val = reflection->Get##method(*message, item);							\
+							}																			\
+						}																				\
+						break;																
+
+					switch (item->cpp_type()){
+						SetValueFromField(BOOL, Bool, bool);
+						SetValueFromField(INT32, Int32, cint32);
+						SetValueFromField(INT64, Int64, cint64);
+						SetValueFromField(UINT32, UInt32, cuint32);
+						SetValueFromField(UINT64, UInt64, cuint64);
+						SetValueFromField(FLOAT, Float, float);
+						SetValueFromField(DOUBLE, Double, double);
+
+					case FieldDescriptor::CPPTYPE_STRING:
+					{
+						string scratch;
+						if (isgetElement){
+							const string& value = reflection->GetRepeatedStringReference(*message, item, node.index, &scratch);
+							val = value.c_str();
+						}
+						else{
+							if (isrepeated){
+								vector<cc::CCString> arr(size);
+								for (int k = 0; k < size; ++k){
+									const string& value = reflection->GetRepeatedStringReference(*message, item, k, &scratch);
+									arr[k] = value.c_str();
+								}
+								val = arr.size()>0 ? Value(&arr[0], size) : Value((cc::CCString*)0, 0);
+							}
+							else{
+								const string& value = reflection->GetStringReference(*message, item, &scratch);
+								val = value.c_str();
+							}
+						}
+						break;
+					}
+					case FieldDescriptor::CPPTYPE_ENUM:
+					{
+						string scratch;
+						if (isgetElement){
+							int enum_value = reflection->GetRepeatedEnumValue(*message, item, node.index);
+							const EnumValueDescriptor* enum_desc =
+								item->enum_type()->FindValueByNumber(enum_value);
+							if (enum_desc != NULL)
+								val = Value(enum_desc->name().c_str(), enum_value);
+						}
+						else{
+							if (isrepeated){
+								vector<cc::CCString> arr(size);
+								vector<int> indexs(size);
+								for (int k = 0; k < size; ++k){
+									int enum_value = reflection->GetRepeatedEnumValue(*message, item, k);
+									const EnumValueDescriptor* enum_desc =
+										item->enum_type()->FindValueByNumber(enum_value);
+									if (enum_desc != NULL){
+										arr[k] = enum_desc->name().c_str();
+										indexs[k] = enum_value;
+									}
+								}
+								val = arr.size()>0 ? Value(&arr[0], &indexs[0], size) : Value((cc::CCString*)0, (int*)0, 0);
+							}
+							else{
+								int enum_value = reflection->GetEnumValue(*message, item);
+								const EnumValueDescriptor* enum_desc =
+									item->enum_type()->FindValueByNumber(enum_value);
+								if (enum_desc != NULL)
+									val = Value(enum_desc->name().c_str(), enum_value);
+							}
+						}
+						break;
+					}
+					case FieldDescriptor::CPPTYPE_MESSAGE:
+					{
+						if (isgetElement){
+							const Message& msg = reflection->GetRepeatedMessage(*message, item, node.index);
+							val = Value((void*)&msg);
+						}
+						else{
+							if (isrepeated){
+								vector<MessageHandle> handles(size);
+								for (int k = 0; k < size; ++k){
+									const Message& msg = reflection->GetRepeatedMessage(*message, item, k);
+									handles[k] = &msg;
+								}
+								val = size > 0 ? Value(&handles[0], size) : Value((MessageHandle*)0, 0);
+							}
+							else{
+								const Message& msg = reflection->GetMessage(*message, item);
+								val = Value((void*)&msg);
+							}
+						}
+						break;
+					}
+					default:
+
+						if (item->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE)
+							printf("unsupport field type: %d(CPPTYPE_MESSAGE), is a layer node: %s\n", item->cpp_type(), item->name().c_str());
+						else
+							printf("unsupport field type: %d, %s\n", item->cpp_type(), item->name().c_str());
+						return false;
+					}
+					return true;
+				}
+			}
+		}
+
+		printf("not found path: %s\n", path.strpath.c_str());
+		return false;
+	}
+
+	enum CppType {
+		CPPTYPE_INT32 = 1,     // TYPE_INT32, TYPE_SINT32, TYPE_SFIXED32
+		CPPTYPE_INT64 = 2,     // TYPE_INT64, TYPE_SINT64, TYPE_SFIXED64
+		CPPTYPE_UINT32 = 3,     // TYPE_UINT32, TYPE_FIXED32
+		CPPTYPE_UINT64 = 4,     // TYPE_UINT64, TYPE_FIXED64
+		CPPTYPE_DOUBLE = 5,     // TYPE_DOUBLE
+		CPPTYPE_FLOAT = 6,     // TYPE_FLOAT
+		CPPTYPE_BOOL = 7,     // TYPE_BOOL
+		CPPTYPE_ENUM = 8,     // TYPE_ENUM
+		CPPTYPE_STRING = 9,     // TYPE_STRING, TYPE_BYTES
+		CPPTYPE_MESSAGE = 10,    // TYPE_MESSAGE, TYPE_GROUP
+
+		MAX_CPPTYPE = 10,    // Constant useful for defining lookup tables
+		// indexed by CppType.
+	};
+
+	static ValueType cvtCPPType(FieldDescriptor::CppType type){
+		switch (type){
+		case CPPTYPE_INT32:   return ValueType_Int32;
+		case CPPTYPE_INT64:   return ValueType_Int64;
+		case CPPTYPE_UINT32:   return ValueType_Uint32;
+		case CPPTYPE_UINT64:   return ValueType_Uint64;
+		case CPPTYPE_DOUBLE:   return ValueType_Double;
+		case CPPTYPE_FLOAT:   return ValueType_Float;
+		case CPPTYPE_BOOL:   return ValueType_Bool;
+		case CPPTYPE_ENUM:   return ValueType_Enum;
+		case CPPTYPE_STRING:   return ValueType_String;
+		case CPPTYPE_MESSAGE:   return ValueType_Message;
+		default: return ValueType_Null;
+		}
+	}
+
+	CCAPI MessagePropertyList CCCALL listProperty(MessageHandle message_){
+		MessagePropertyList out;
+		if (!message_) return out;
+
+		const Message* message = (const Message*)message_;
+		const Descriptor* descriptor = message->GetDescriptor();
+		const Reflection* reflection = message->GetReflection();
+		std::vector<const FieldDescriptor*> fields;
+		reflection->ListFields(*message, &fields);
+
+		if (fields.size() == 0)
+			return out;
+
+		out.resize(fields.size());
+		for (int i = 0; i < fields.size(); ++i){
+			int size = 0;
+			if (fields[i]->is_repeated())
+				size = reflection->FieldSize(*message, fields[i]);
+			else if (reflection->HasField(*message, fields[i]))
+				size = 1;
+
+			MessageProperty& mp = out.list[i];
+			mp.name = fields[i]->name().c_str();
+			mp.count = size;
+			mp.type = cvtCPPType(fields[i]->cpp_type());
+		}
+		return out;
+	}
+
+	CCAPI bool CCCALL getMessageValue(MessageHandle message, const char* pathOfGet, Value& val){
+		val.release();
+		if (!message || !pathOfGet) return false;
+
+		MessagePath path = parsePath(pathOfGet);
+		if (path.nodes.empty())
+			return false;
+
+		return getValue2((const Message*)message, path, 0, val);
+	}
+
+	static bool ReadProtoFromTextFile(const char* filename, Message* proto) {
+		int fd = open(filename, O_RDONLY);
+		FileInputStream* input = new FileInputStream(fd);
+		bool success = google::protobuf::TextFormat::Parse(input, proto);
+		delete input;
+		close(fd);
+		return success;
+	}
+
+	CCAPI MessageHandle CCCALL loadMessageSolverFromPrototxt(const char* filename) {
+
+		caffe::SolverParameter* solver = new caffe::SolverParameter();
+		bool success = cc::ReadProtoFromTextFile(filename, solver);
+
+		if (success) return solver;
+		delete solver;
+		return 0;
+	}
+
+	CCAPI MessageHandle CCCALL loadMessageNetFromPrototxt(const char* filename) {
+		caffe::NetParameter* net = new caffe::NetParameter();
+		bool success = cc::ReadProtoFromTextFile(filename, net);
+
+		if (success) return net;
+		delete net;
+		return 0;
+	}
+
+	static bool ReadProtoFromBinaryFile(const char* filename, Message* proto) {
+		int fd = open(filename, O_RDONLY | O_BINARY);
+		if (fd == -1) return false;
+
+		bool success = false;
+		{
+			ZeroCopyInputStream* raw_input = new FileInputStream(fd);
+			CodedInputStream* coded_input = new CodedInputStream(raw_input);
+			coded_input->SetTotalBytesLimit(INT_MAX, 536870912);
+
+			success = proto->ParseFromCodedStream(coded_input);
+
+			delete coded_input;
+			delete raw_input;
+		}
+		close(fd);
+		return success;
+	}
+
+	CCAPI MessageHandle CCCALL loadMessageNetCaffemodel(const char* filename) {
+		caffe::NetParameter* net = new caffe::NetParameter();
+		bool success = cc::ReadProtoFromBinaryFile(filename, net);
+		if (success) return net;
+		delete net;
+		return 0;
+	}
 }

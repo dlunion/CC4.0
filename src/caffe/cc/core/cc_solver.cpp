@@ -94,10 +94,7 @@ namespace cc{
 	}
 #endif
 
-	CCAPI Solver* CCCALL loadSolverFromPrototxt(const char* solver_prototxt){
-		caffe::SolverParameter solver_param;
-		caffe::ReadProtoFromTextFileOrDie(solver_prototxt, &solver_param);
-
+	static Solver* buildSolver(caffe::SolverParameter& solver_param){
 		// Set device id and mode
 		if (solver_param.solver_mode() == caffe::SolverParameter_SolverMode_GPU) {
 			LOG(INFO) << "Use GPU with device ID " << solver_param.device_id();
@@ -109,6 +106,18 @@ namespace cc{
 			caffe::Caffe::set_mode(caffe::Caffe::CPU);
 		}
 		return GetSolver<float>(solver_param)->ccSolver();
+	}
+
+	CCAPI Solver* CCCALL loadSolverFromPrototxtString(const char* solver_prototxt_string){
+		caffe::SolverParameter solver_param;
+		caffe::ReadProtoFromTextString(solver_prototxt_string, &solver_param);
+		return buildSolver(solver_param);
+	}
+
+	CCAPI Solver* CCCALL loadSolverFromPrototxt(const char* solver_prototxt){
+		caffe::SolverParameter solver_param;
+		caffe::ReadProtoFromTextFileOrDie(solver_prototxt, &solver_param);
+		return buildSolver(solver_param);
 	}
 
 	void Solver::installActionSignalOperator(){

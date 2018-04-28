@@ -43,8 +43,16 @@ namespace cc{
 		ptr->CopyTrainedLayersFromData(data, length);
 	}
 
-	Layer* Net::layer_by_name(const char* name){
+	int Net::num_layers(){
+		return ptr->layers().size();
+	}
+
+	Layer* Net::layer(const char* name){
 		return ptr->layer_by_name(name)->ccLayer();
+	}
+
+	Layer* Net::layer(int index){
+		return index < 0 || index >= num_layers() ? 0 : ptr->layers()[index]->ccLayer();
 	}
 
 	CCAPI void CCCALL releaseNet(Net* net){
@@ -58,8 +66,25 @@ namespace cc{
 		return ptr->has_blob(name);
 	}
 
+	Blob* Net::blob(int index){
+		if (index < 0 || index >= num_blobs())
+			return 0;
+		return ptr->blobs()[index]->ccBlob();
+	}
+
 	bool Net::has_layer(const char* name){
 		return ptr->has_layer(name);
+	}
+
+	int Net::num_blobs(){
+		return ptr->blobs().size();
+	}
+
+	CCString Net::blob_name(int index){
+		if (index < 0 || index >= num_blobs())
+			return "";
+
+		return ptr->blob_names()[index].c_str();
 	}
 
 	int Net::num_input_blobs(){

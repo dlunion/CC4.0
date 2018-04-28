@@ -13,8 +13,8 @@ void EuclideanLossLayer<Dtype>::Reshape(
       << "Inputs must have the same dimension.";
 
   if (bottom.size() == 3){
-	  CHECK_EQ(bottom[2]->channels(), 1)
-		  << "Input mask must have the 1 channels.";
+	  CHECK_EQ(bottom[2]->count(1), bottom[0]->count(1))
+		  << "Inputs weights(bottom 3) have the same dimension.";
   }
   diff_.ReshapeLike(*bottom[0]);
 }
@@ -36,6 +36,8 @@ void EuclideanLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		num_labels = bottom[0]->num();
 	}
 	else if (bottom.size() == 3){
+		//a, b, weights
+#if 0
 		const Dtype* a = bottom[0]->cpu_data();
 		const Dtype* b = bottom[1]->cpu_data();
 		const Dtype* mask = bottom[2]->cpu_data();
@@ -52,6 +54,8 @@ void EuclideanLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 		for (int n = 0; n < num; ++n){
 			for (int i = 0; i < w; ++i){
 				for (int j = 0; j < h; ++j){
+					
+					/*
 					Dtype v = *(mask + i + j * w + n * plane);
 					if (v != 0){
 						for (int c = 0; c < channels; ++c){
@@ -63,12 +67,28 @@ void EuclideanLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 							dot += *pdiff;
 						}
 					}
+					*/
 				}
 			}
 		}
 		Dtype loss = num_labels == 0 ? 0 : dot / num_labels / Dtype(2);
 		top[0]->mutable_cpu_data()[0] = loss;
+#endif
+
+		int count = bottom[0]->count();
+		caffe_sub(
+			count,
+			bottom[0]->cpu_data(),
+			bottom[1]->cpu_data(),
+			diff_.mutable_cpu_data());
+		caffe_mul(count, bottom[2]->cpu_data(), diff_.mutable_cpu_data(), diff_.mutable_cpu_data());
+
+		Dtype dot = caffe_cpu_dot(count, diff_.cpu_data(), diff_.cpu_data());
+		Dtype loss = dot / bottom[0]->num() / Dtype(2);
+		top[0]->mutable_cpu_data()[0] = loss;
+		num_labels = bottom[0]->num();
 	}
+	//printf("ÐÞ¸ÄÀ².\n");
 }
 
 template <typename Dtype>

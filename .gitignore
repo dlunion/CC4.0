@@ -1,0 +1,11 @@
+/3rd/include
+/3rd/staticlib
+/Build
+/windows-gpu/windows-gpu.v12.suo
+/windows-gpu/vc120.pdb
+/windows-gpu/windows-gpu.opensdf
+/windows-gpu/windows-gpu.sdf
+/windows-gpu/*.suo
+/windows-gpu/*.pdb
+/windows-gpu/*.opensdf
+/windows-gpu/*.sdf

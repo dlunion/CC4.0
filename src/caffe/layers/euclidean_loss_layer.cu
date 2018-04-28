@@ -38,6 +38,8 @@ void EuclideanLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	  num_labels = bottom[0]->num();
   }
   else if (bottom.size() == 3){
+
+#if 0
 	  const Dtype* a = bottom[0]->gpu_data();
 	  const Dtype* b = bottom[1]->gpu_data();
 	  const Dtype* label = bottom[2]->cpu_data();
@@ -78,7 +80,25 @@ void EuclideanLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 	 // printf("num_labels = %d, dot = %f\n", num_labels, dot);
 	  Dtype loss = num_labels == 0 ? 0 : dot / num_labels / Dtype(2);
 	  top[0]->mutable_cpu_data()[0] = loss;
+#endif
+
+	  int count = bottom[0]->count();
+	  caffe_gpu_sub(
+		  count,
+		  bottom[0]->gpu_data(),
+		  bottom[1]->gpu_data(),
+		  diff_.mutable_gpu_data());
+	  caffe_gpu_mul(count, bottom[2]->gpu_data(), diff_.mutable_gpu_data(), diff_.mutable_gpu_data());
+
+	  Dtype dot = 0;
+	  caffe_gpu_dot(count, diff_.gpu_data(), diff_.gpu_data(), &dot);
+
+	  Dtype loss = dot / bottom[0]->num() / Dtype(2);
+	  top[0]->mutable_cpu_data()[0] = loss;
+	  num_labels = bottom[0]->num();
   }
+
+  //printf("ÐÞ¸ÄÀ².\n");
 }
 
 template <typename Dtype>

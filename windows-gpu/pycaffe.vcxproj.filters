@@ -58,6 +58,9 @@
     <Filter Include="include\cc\core">
       <UniqueIdentifier>{f2c040cb-9a35-4dfd-9381-932763883414}</UniqueIdentifier>
     </Filter>
+    <Filter Include="bin">
+      <UniqueIdentifier>{4b422ddf-8920-4599-9904-a9afee62b4a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\caffe\layers\absval_layer.hpp">
@@ -979,6 +982,9 @@
     </ClCompile>
     <ClCompile Include="..\src\caffe\layers\warp_ctc_loss_layer.cpp">
       <Filter>src\layers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\_caffe.cpp">
+      <Filter>bin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\caffe\layers\roi_pooling_layer.cpp">
       <Filter>src\layers</Filter>

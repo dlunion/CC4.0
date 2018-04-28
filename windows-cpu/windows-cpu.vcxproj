@@ -438,7 +438,7 @@
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -648,8 +648,7 @@ copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\cpu\$(Configuration)\$(Pla
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>shlwapi.lib;gflags_static.lib;libprotobuf.lib;libglog_static.lib;libopenblas.dll.a</AdditionalDependencies>
       <MinimumRequiredVersion>5.04</MinimumRequiredVersion>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
+      <ModuleDefinitionFile>def.def</ModuleDefinitionFile>
       <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>

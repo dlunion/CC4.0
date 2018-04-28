@@ -1,9 +1,14 @@
-#include <algorithm>
+// ------------------------------------------------------------------
+// Fast R-CNN
+// Copyright (c) 2015 Microsoft
+// Licensed under The MIT License [see fast-rcnn/LICENSE for details]
+// Written by Ross Girshick
+// ------------------------------------------------------------------
+
 #include <cfloat>
-#include <vector>
 
 #include "caffe/layers/roi_pooling_layer.hpp"
-
+#include "caffe/util/math_functions.hpp"
 
 using std::max;
 using std::min;

@@ -65,11 +65,17 @@ namespace cc{
 	void Classifier::forward(int num, const Mat* ims){
 		Mat fm;
 		Blob* input = net_->input_blob(0);
-		float* image_ptr = input->mutable_cpu_data();
 		int w = input->width();
 		int h = input->height();
 
+		//fix，如果输入的通道不匹配会报错
+		if (num != input->num()){
+			input->Reshape(num, input->channel(), input->height(), input->width());
+			net_->Reshape();
+		}
+		 
 		for (int i = 0; i < num; ++i){
+			float* image_ptr = input->mutable_cpu_data() + input->offset(i);
 			CHECK_EQ(ims[i].channels(), input->channel()) << "channels not match";
 			ims[i].copyTo(fm);
 
@@ -221,6 +227,7 @@ namespace cc{
 
 		volatile int recNum;
 		volatile BlobData** outBlobs;
+		volatile BlobData** cacheOutBlobs;
 		volatile ObjectDetectList** recDetection;
 		volatile int job_cursor;
 		semaphore* semaphoreWait;
@@ -244,13 +251,14 @@ namespace cc{
 			std::swap(pool->cacheBlobNames, pool->blobNames);
 			std::swap(pool->cacheOperType, pool->operType);
 			std::swap(pool->cacheSemaphoreGetResult, pool->semaphoreGetResult);
+			std::swap(pool->cacheOutBlobs, pool->outBlobs);
 			pool->job_cursor = 0;
 			leaveCriticalSection(&pool->jobCS);
 			releaseSemaphore(pool->semaphoreWait, pool->recNum);
 		}
 
-		if (pool->recNum == 0)
-			sleep_cc(1);
+		//if (pool->recNum == 0)
+			//sleep_cc(1);
 	}
 
 	//从blob数据中，得到检测结果列表，
@@ -308,6 +316,7 @@ namespace cc{
 
 		// GPU是线程上下文相关的
 		cc::setGPU(pool->gpu_id);
+		WPtr<BlobData> ssd_cacheBlob = new BlobData();
 
 		//vector<Mat> ims;
 		while (pool->flag_run){
@@ -318,11 +327,9 @@ namespace cc{
 				pool->model->forward(pool->recNum, (Mat*)pool->recImgs);
 
 				if (pool->operType[0] == operType_Detection){
-					printf("operType_Detection\n");
-					WPtr<BlobData> blob = new BlobData();
-					copyFromBlob(blob, pool->model->getBlob((const char*)pool->blobNames[0]));
+					copyFromBlob(ssd_cacheBlob, pool->model->getBlob((const char*)pool->blobNames[0]));
 
-					vector<ObjectDetectList*> detectResult = detectObjectMulti(blob);
+					vector<ObjectDetectList*> detectResult = detectObjectMulti(ssd_cacheBlob);
 					for (int i = 0; i < pool->recNum; ++i){
 						pool->recDetection[i] = detectResult[i];
 						if (pool->recDetection[i]){
@@ -372,6 +379,7 @@ namespace cc{
 
 		pool->semaphoreWait = createSemaphore(batch_size, batch_size);
 		pool->outBlobs = new volatile BlobData*[batch_size];
+		pool->cacheOutBlobs = new volatile BlobData*[batch_size];
 		pool->recDetection = new volatile ObjectDetectList*[batch_size];
 
 		//pool->semaphoreGetResult = CreateSemaphoreA(0, 0, batch_size, 0);
@@ -440,7 +448,7 @@ namespace cc{
 		((Mat*)pool->cacheImgs)[cursor] = im;
 		pool->cacheBlobNames[cursor] = (char*)blob_name;
 		pool->cacheOperType[cursor] = operType_Forward;
-		pool->outBlobs[cursor] = inplace_blobData;
+		pool->cacheOutBlobs[cursor] = inplace_blobData;
 		pool->job_cursor++;
 		leaveCriticalSection(&pool->jobCS);
 
@@ -480,6 +488,7 @@ namespace cc{
 		delete[] pool->semaphoreGetResult;
 		delete[] pool->cacheSemaphoreGetResult;
 		delete[] pool->outBlobs;
+		delete[] pool->cacheOutBlobs;
 		delete pool;
 	}
 

@@ -52,6 +52,7 @@ namespace cc{
 			ptr = new ptrInfo<DtypePtr>(p);
 		}
 		WPtr(const WPtr& other){
+			ptr = 0;
 			operator=(other);
 		}
 		~WPtr(){
@@ -174,6 +175,14 @@ namespace cc{
 		float score;
 		float xmin, ymin, xmax, ymax;
 		int label, image_id;
+
+		cv::Rect box(){
+			return cv::Rect(xmin, ymin, xmax-xmin+1, ymax-ymin+1);
+		}
+
+		cv::Point2f center(){
+			return cv::Point2f(xmin+(xmax-xmin)*0.5, ymin+(ymax-ymin)*0.5);
+		}
 	};
 
 	struct ObjectDetectList{

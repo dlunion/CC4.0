@@ -90,6 +90,12 @@ namespace cc{
 		return ptr->count();
 	}
 
+	CCString Blob::shapeString(){
+		char buf[100];
+		sprintf(buf, "%dx%dx%dx%d", num(), channel(), height(), width());
+		return buf;
+	}
+
 	int Blob::count(int start_axis) const {
 		return ptr->count(start_axis);
 	}

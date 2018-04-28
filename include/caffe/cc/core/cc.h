@@ -1,5 +1,5 @@
 /*
-CC娣卞害瀛︿範搴擄紙Caffe锛塚4.0
+CC深度学习库（Caffe）V4.0
 */
 
 #ifndef CC_H
@@ -28,6 +28,148 @@ namespace cc{
 	static const int PhaseTrain = 0;
 	static const int PhaseTest = 1;
 
+	class CCAPI CCString{
+	private:
+		char* buffer;
+		int capacity_size;
+		int length;
+
+	public:
+		operator char*(){ return get(); }
+		operator const char*(){ return get(); }
+		CCString& operator=(const char* str){ set(str); return *this; }
+		CCString& operator=(char* str){ set(str); return *this; }
+		CCString& operator=(const CCString& str){ set(str.get(), str.len()); return *this; }
+		CCString& operator+=(const CCString& str);
+		CCString& operator+=(const char* str);
+		CCString operator+(const CCString& str);
+		CCString operator+(const char* str);
+		CCString(const char* other);
+		CCString(const CCString& other);
+		CCString();
+		virtual ~CCString();
+		void set(const char* str, int len = -1);
+		char* get() const;
+		const char* c_str() const{ return get(); };
+		int len() const{ return length; }
+		void release();
+		void append(const char* str, int len = -1);
+	};
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	enum ValueType{
+		ValueType_Null,
+		ValueType_Int32,
+		ValueType_Int64,
+		ValueType_String,
+		ValueType_Float,
+		ValueType_Double,
+		ValueType_Bool,
+		ValueType_Uint32,
+		ValueType_Uint64,
+		ValueType_Enum,
+		ValueType_Message
+	};
+
+	struct CCAPI MessageProperty{
+		cc::CCString name;
+		ValueType type;
+		int count;
+	};
+
+	struct CCAPI MessagePropertyList{
+		MessageProperty* list;
+		int count, capacity_count;
+
+		void init();
+		MessagePropertyList();
+		MessagePropertyList(const MessagePropertyList& other);
+		MessagePropertyList& operator=(const MessagePropertyList& other);
+		void resize(int size);
+		void copyFrom(const MessagePropertyList& other);
+		void release();
+		virtual ~MessagePropertyList();
+	};
+
+	typedef const void* MessageHandle;
+	typedef int cint32;
+	typedef __int64 cint64;
+	typedef unsigned int cuint32;
+	typedef unsigned __int64 cuint64;
+
+	struct CCAPI Value{
+		union {
+			cint32 int32Val;
+			cint64 int64Val;
+			cc::CCString* stringVal;
+			float floatVal;
+			double doubleVal;
+			cuint32 uint32Val;
+			cuint64 uint64Val;
+			bool boolVal;
+			cc::CCString* enumVal;
+			MessageHandle messageVal;
+
+			//repeated
+			float* floatRepVal;
+			cint32* cint32RepVal;
+			cuint32* cuint32RepVal;
+			cint64* cint64RepVal;
+			cuint64* cuint64RepVal;
+			double* doubleRepVal;
+			bool* boolRepVal;
+			cc::CCString* stringRepVal;
+			cc::CCString* enumRepVal;
+			MessageHandle* messageRepVal;
+		};
+
+		//for enum type
+		int enumIndex;
+		int* enumRepIndex;
+
+		ValueType type;
+		bool repeated;		//对于基本元素，是否为重复的，如果是，则推广为指针
+		int numElements;
+
+		void init();
+		Value(cc::CCString* repeatedValue, int length);
+		Value(cc::CCString* repeatedValue, int* enumIndex, int length);
+		Value(MessageHandle* repeatedValue, int length);
+		Value(float* repeatedValue, int length);
+		Value(cint32* repeatedValue, int length);
+		Value(cuint32* repeatedValue, int length);
+		Value(cint64* repeatedValue, int length);
+		Value(cuint64* repeatedValue, int length);
+		Value(double* repeatedValue, int length);
+		Value(bool* repeatedValue, int length);
+
+		Value(int val);
+		Value(cuint32 val);
+		Value(__int64 val);
+		Value(cuint64 val);
+		Value(float val);
+		Value(double val);
+		Value(bool val);
+		Value(const char* stringVal);
+		Value(const char* enumName, int enumIndex);
+		Value(MessageHandle message);
+		Value();
+
+		cint32 getInt(int index = 0);
+		cuint32 getUint(int index = 0);
+		cint64 getInt64(int index = 0);
+		cuint64 getUint64(int index = 0);
+		float getFloat(int index = 0);
+		double getDouble(int index = 0);
+		cc::CCString getString(int index = 0);
+		cc::CCString toString();
+		void release();
+		void copyFrom(const Value& other);
+		Value& operator=(const Value& other);
+		Value(const Value& other);
+		virtual ~Value();
+	};
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	class CCAPI Blob{
 	public:
@@ -54,11 +196,12 @@ namespace cc{
 		float* mutable_cpu_diff();
 		float* mutable_gpu_diff();
 
-		void Reshape(int num, int channels, int height, int width);
+		void Reshape(int num = 1, int channels = 1, int height = 1, int width = 1);
 		void Reshape(int numShape, int* shapeDims);
 		void ReshapeLike(const Blob& other);
 		void copyFrom(const Blob& other, bool copyDiff = false, bool reshape = false);
 		void setDataRGB(int numIndex, const Mat& data);
+		CCString shapeString();
 
 	private:
 		void* _native;
@@ -70,6 +213,10 @@ namespace cc{
 		void setupLossWeights(int num, float* weights);
 		float lossWeights(int index);
 		void setLossWeights(int index, float weights);
+		const char* type() const;
+		CCString paramString();
+		bool getParam(const char* path, Value& val);
+		bool hasParam(const char* path);
 
 #ifdef USE_PROTOBUF
 		caffe::LayerParameter& layer_param();
@@ -86,6 +233,7 @@ namespace cc{
 		void* getNative();
 
 		Blob* blob(const char* name);
+		Blob* blob(int index);
 		void Forward(float* loss = 0);
 		void Reshape();
 		void copyTrainedParamFromFile(const char* file);
@@ -95,14 +243,18 @@ namespace cc{
 		bool has_layer(const char* name);
 		int num_input_blobs();
 		int num_output_blobs();
+		int num_blobs();
+		CCString blob_name(int index);
 		Blob* input_blob(int index);
 		Blob* output_blob(int index);
-		Layer* layer_by_name(const char* name);
+		int num_layers();
+		Layer* layer(const char* name);
+		Layer* layer(int index);
 
 	private:
 		void* _native;
 	};
-
+	 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	class CCAPI Solver{
 	public:
@@ -125,7 +277,7 @@ namespace cc{
 		void setBaseLearningRate(float rate);
 		float getBaseLearningRate();
 		void postSnapshotSignal();
-
+		
 #ifdef USE_PROTOBUF
 		caffe::SolverParameter& solver_param();
 #endif
@@ -142,6 +294,7 @@ namespace cc{
 	CCAPI void CCCALL releaseSolver(Solver* solver);
 	CCAPI void CCCALL releaseNet(Net* net);
 	CCAPI Solver* CCCALL loadSolverFromPrototxt(const char* solver_prototxt);
+	CCAPI Solver* CCCALL loadSolverFromPrototxtString(const char* solver_prototxt_string);
 
 #ifdef USE_PROTOBUF
 	CCAPI Solver* CCCALL newSolverFromProto(const caffe::SolverParameter* solver_param);
@@ -274,6 +427,15 @@ namespace cc{
 	CCAPI void* CCCALL loadLabelMap(const char* prototxt);
 	CCAPI void CCCALL releaseLabelMap(void* labelmap);
 	CCAPI void CCCALL releaseAnnDatum(void* datum);
+
+
+	/////////////////////////////////////////////////////////////////////////////
+	CCAPI MessageHandle CCCALL loadMessageNetCaffemodel(const char* filename);
+	CCAPI MessageHandle CCCALL loadMessageNetFromPrototxt(const char* filename);
+	CCAPI MessageHandle CCCALL loadMessageSolverFromPrototxt(const char* filename);
+	CCAPI bool CCCALL getMessageValue(MessageHandle message, const char* pathOfGet, Value& val);
+	CCAPI MessagePropertyList CCCALL listProperty(MessageHandle message_);
+
 };
 
 #endif //CC_H
