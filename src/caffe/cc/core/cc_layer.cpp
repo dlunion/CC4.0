@@ -14,6 +14,10 @@ namespace cc{
 		this->_native = native;
 	}
 
+	CCString Layer::name(){
+		return ptr->layer_param_.name().c_str();
+	}
+
 	const char* Layer::type() const{
 		return ptr->type();
 	}

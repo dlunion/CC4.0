@@ -872,6 +872,9 @@
     <ClCompile Include="..\src\caffe\util\xml\tinyxmlparser.cpp">
       <Filter>src\util\xml</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\caffe\layers\axpy_layer.cpp">
+      <Filter>src\layers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\caffe\util\bbox_util.cu">

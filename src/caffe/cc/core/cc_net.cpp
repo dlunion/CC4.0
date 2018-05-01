@@ -55,6 +55,12 @@ namespace cc{
 		return index < 0 || index >= num_layers() ? 0 : ptr->layers()[index]->ccLayer();
 	}
 
+	CCString Net::layer_name(int index){
+		Layer* l = layer(index);
+		if (l) return l->name();
+		return "";
+	}
+
 	CCAPI void CCCALL releaseNet(Net* net){
 		if (net){
 			void* p = net->getNative();

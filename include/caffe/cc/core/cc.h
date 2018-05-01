@@ -145,7 +145,7 @@ namespace cc{
 
 		Value(int val);
 		Value(cuint32 val);
-		Value(__int64 val);
+		Value(cint64 val);
 		Value(cuint64 val);
 		Value(float val);
 		Value(double val);
@@ -217,6 +217,7 @@ namespace cc{
 		CCString paramString();
 		bool getParam(const char* path, Value& val);
 		bool hasParam(const char* path);
+		CCString name();
 
 #ifdef USE_PROTOBUF
 		caffe::LayerParameter& layer_param();
@@ -245,6 +246,7 @@ namespace cc{
 		int num_output_blobs();
 		int num_blobs();
 		CCString blob_name(int index);
+		CCString layer_name(int index);
 		Blob* input_blob(int index);
 		Blob* output_blob(int index);
 		int num_layers();

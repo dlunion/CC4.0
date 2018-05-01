@@ -1342,7 +1342,7 @@ namespace cc{
 			}
 		}
 
-		printf("not found path: %s\n", path.strpath.c_str());
+		//printf("not found path: %s\n", path.strpath.c_str());
 		return false;
 	}
 

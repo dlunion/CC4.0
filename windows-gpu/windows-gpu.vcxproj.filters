@@ -531,6 +531,9 @@
     <ClInclude Include="..\include\caffe\cc\core\cc_utils.h">
       <Filter>include\cc\core</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\caffe\layers\axpy_layer.hpp">
+      <Filter>include\layers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\caffe\layers\absval_layer.cpp">
@@ -983,6 +986,9 @@
     <ClCompile Include="..\src\caffe\layers\roi_pooling_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\caffe\layers\axpy_layer.cpp">
+      <Filter>src\layers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCOmpile Include="..\src\caffe\layers\absval_layer.cu">
@@ -1229,6 +1235,9 @@
       <Filter>src\layers</Filter>
     </CudaCompile>
     <CudaCompile Include="..\src\caffe\layers\warp_ctc_loss_layer.cu">
+      <Filter>src\layers</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\caffe\layers\axpy_layer.cu">
       <Filter>src\layers</Filter>
     </CudaCompile>
   </ItemGroup>
