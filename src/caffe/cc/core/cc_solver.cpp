@@ -85,6 +85,18 @@ namespace cc{
 		ptr->postSnapshotSignal();
 	}
 
+	bool Solver::getParam(const char* path, Value& val){
+		return getMessageValue(&ptr->param_, path, val);
+	}
+
+	MessageHandle Solver::param(){
+		return &ptr->param_;
+	}
+
+	void Solver::TestAll(){
+		ptr->TestAll();
+	}
+
 	Solver::~Solver(){
 	}
 

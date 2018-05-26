@@ -254,7 +254,7 @@ void SGDSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
               history_[param_id]->mutable_cpu_data());
     caffe_copy(net_params[param_id]->count(),
         history_[param_id]->cpu_data(),
-        net_params[param_id]->mutable_cpu_diff());
+        net_params[param_id]->mutable_cpu_diff(), 0);
     break;
   }
   case Caffe::GPU: {

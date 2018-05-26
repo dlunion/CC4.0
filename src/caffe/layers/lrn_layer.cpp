@@ -134,7 +134,7 @@ void LRNLayer<Dtype>::CrossChannelForward_cpu(
       // copy previous scale
       caffe_copy<Dtype>(height_ * width_,
           scale_data + scale_.offset(n, c - 1),
-          scale_data + scale_.offset(n, c));
+          scale_data + scale_.offset(n, c), 0);
       // add head
       caffe_axpy<Dtype>(height_ * width_, alpha_over_size,
           padded_square_data + padded_square.offset(0, c + size_ - 1),

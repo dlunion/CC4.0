@@ -525,14 +525,17 @@
     <ClInclude Include="..\include\caffe\cc\core\cc.h">
       <Filter>include\cc\core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\caffe\cc\core\cc_matrix.h">
-      <Filter>include\cc\core</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\caffe\cc\core\cc_utils.h">
       <Filter>include\cc\core</Filter>
     </ClInclude>
     <ClInclude Include="..\include\caffe\layers\axpy_layer.hpp">
       <Filter>include\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\caffe\layers\get_data_dim_layer.hpp">
+      <Filter>include\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\caffe\cc\core\cc_c.h">
+      <Filter>include\cc\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -989,6 +992,33 @@
     <ClCompile Include="..\src\caffe\layers\axpy_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\caffe\layers\get_data_dim_layer.cpp">
+      <Filter>src\layers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\layers\spatial_product_layer.cpp">
+      <Filter>src\layers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\layers\interp_layer.cpp">
+      <Filter>src\layers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\layers\densecrf_layer.cpp">
+      <Filter>src\layers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\util\densecrf_pairwise.cpp">
+      <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\util\densecrf_util.cpp">
+      <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\util\permutohedral.cpp">
+      <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\util\interp.cpp">
+      <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\cc\core\cc_c.cpp">
+      <Filter>src\cc\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCOmpile Include="..\src\caffe\layers\absval_layer.cu">
@@ -1240,5 +1270,14 @@
     <CudaCompile Include="..\src\caffe\layers\axpy_layer.cu">
       <Filter>src\layers</Filter>
     </CudaCompile>
+    <CudaCompile Include="..\src\caffe\layers\spatial_product_layer.cu">
+      <Filter>src\layers</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\caffe\util\interp.cu">
+      <Filter>src\util</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="def.def" />
   </ItemGroup>
 </Project>

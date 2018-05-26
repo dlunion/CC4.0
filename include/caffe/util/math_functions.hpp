@@ -33,8 +33,13 @@ template <typename Dtype>
 void caffe_cpu_axpby(const int N, const Dtype alpha, const Dtype* X,
     const Dtype beta, Dtype* Y);
 
+//cudaMemcpyHostToHost		= 0,      /**< Host   -> Host */
+//cudaMemcpyHostToDevice	= 1,      /**< Host   -> Device */
+//cudaMemcpyDeviceToHost	= 2,      /**< Device -> Host */
+//cudaMemcpyDeviceToDevice	= 3,      /**< Device -> Device */
+//cudaMemcpyDefault			= 4       /**< Default based unified virtual address space */
 template <typename Dtype>
-void caffe_copy(const int N, const Dtype *X, Dtype *Y);
+void caffe_copy(const int N, const Dtype *X, Dtype *Y, int type);
 
 template <typename Dtype>
 void caffe_set(const int N, const Dtype alpha, Dtype *X);
@@ -170,7 +175,12 @@ template <typename Dtype>
 void caffe_gpu_axpby(const int N, const Dtype alpha, const Dtype* X,
     const Dtype beta, Dtype* Y);
 
-void caffe_gpu_memcpy(const size_t N, const void *X, void *Y);
+//cudaMemcpyHostToHost		= 0,      /**< Host   -> Host */
+//cudaMemcpyHostToDevice	= 1,      /**< Host   -> Device */
+//cudaMemcpyDeviceToHost	= 2,      /**< Device -> Host */
+//cudaMemcpyDeviceToDevice	= 3,      /**< Device -> Device */
+//cudaMemcpyDefault			= 4       /**< Default based unified virtual address space */
+void caffe_gpu_memcpy(const size_t N, const void *X, void *Y, int type = 4);
 
 template <typename Dtype>
 void caffe_gpu_set(const int N, const Dtype alpha, Dtype *X);

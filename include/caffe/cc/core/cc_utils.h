@@ -21,13 +21,13 @@
 #ifndef CC_UTILS_H
 #define CC_UTILS_H
 #include "cc.h"
-
+  
 using namespace std;
 
 namespace cc{
 
-#define VersionStr		"CC4.0.1 "
-#define VersionInt		0x0401
+#define VersionStr		"CC4.0.2"
+#define VersionInt		0x0402
 
 	using cv::Mat;
 	//这是一个智能指针类，负责自动释放一些指针	
@@ -79,6 +79,12 @@ namespace cc{
 			this->ptr = other.ptr;
 			addRef();
 			return *this;
+		}
+
+		DtypePtr get() const{
+			if (this->ptr)
+				return ptr->ptr;
+			return 0;
 		}
 
 		DtypePtr get(){
@@ -301,8 +307,13 @@ namespace cc{
 	CCAPI void CCCALL caffe_cpu_axpby(const int N, const Dtype alpha, const Dtype* X,
 		const Dtype beta, Dtype* Y);
 
+	//cudaMemcpyHostToHost		= 0,      /**< Host   -> Host */
+	//cudaMemcpyHostToDevice	= 1,      /**< Host   -> Device */
+	//cudaMemcpyDeviceToHost	= 2,      /**< Device -> Host */
+	//cudaMemcpyDeviceToDevice	= 3,      /**< Device -> Device */
+	//cudaMemcpyDefault			= 4       /**< Default based unified virtual address space */
 	template <typename Dtype>
-	CCAPI void CCCALL caffe_copy(const int N, const Dtype *X, Dtype *Y);
+	CCAPI void CCCALL caffe_copy(const int N, const Dtype *X, Dtype *Y, int type);
 
 	template <typename Dtype>
 	CCAPI void CCCALL caffe_set(const int N, const Dtype alpha, Dtype *X);
@@ -424,7 +435,12 @@ namespace cc{
 	CCAPI void CCCALL caffe_gpu_axpby(const int N, const Dtype alpha, const Dtype* X,
 		const Dtype beta, Dtype* Y);
 
-	CCAPI void CCCALL caffe_gpu_memcpy(const size_t N, const void *X, void *Y);
+	//cudaMemcpyHostToHost		= 0,      /**< Host   -> Host */
+	//cudaMemcpyHostToDevice	= 1,      /**< Host   -> Device */
+	//cudaMemcpyDeviceToHost	= 2,      /**< Device -> Host */
+	//cudaMemcpyDeviceToDevice	= 3,      /**< Device -> Device */
+	//cudaMemcpyDefault			= 4       /**< Default based unified virtual address space */
+	CCAPI void CCCALL caffe_gpu_memcpy(const size_t N, const void *X, void *Y, int type = 4);
 
 	template <typename Dtype>
 	CCAPI void CCCALL caffe_gpu_set(const int N, const Dtype alpha, Dtype *X);

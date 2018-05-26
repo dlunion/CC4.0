@@ -149,8 +149,8 @@ namespace caffe {
 
 		// Initialize previous state
 		if (clip) {
-			caffe_copy(c_0_.count(), c_T_.cpu_data(), c_0_.mutable_cpu_data());
-			caffe_copy(h_0_.count(), h_T_.cpu_data(), h_0_.mutable_cpu_data());
+			caffe_copy(c_0_.count(), c_T_.cpu_data(), c_0_.mutable_cpu_data(), 0);
+			caffe_copy(h_0_.count(), h_T_.cpu_data(), h_0_.mutable_cpu_data(), 0);
 		}
 		else {
 			caffe_set(c_0_.count(), Dtype(0.), c_0_.mutable_cpu_data());
@@ -204,8 +204,8 @@ namespace caffe {
 			}
 		}
 		// Preserve cell state and output value for truncated BPTT
-		caffe_copy(N_*H_, cell_data + cell_.offset(T_ - 1), c_T_.mutable_cpu_data());
-		caffe_copy(N_*H_, top_data + top_.offset(T_ - 1), h_T_.mutable_cpu_data());
+		caffe_copy(N_*H_, cell_data + cell_.offset(T_ - 1), c_T_.mutable_cpu_data(), 0);
+		caffe_copy(N_*H_, top_data + top_.offset(T_ - 1), h_T_.mutable_cpu_data(), 0);
 	}
 
 	template <typename Dtype>
@@ -229,7 +229,7 @@ namespace caffe {
 		Dtype* gate_diff = gate_.mutable_cpu_diff();
 		Dtype* cell_diff = cell_.mutable_cpu_diff();
 
-		caffe_copy(N_*H_, c_T_.cpu_diff(), cell_diff + cell_.offset(T_ - 1));
+		caffe_copy(N_*H_, c_T_.cpu_diff(), cell_diff + cell_.offset(T_ - 1), 0);
 
 		for (int t = T_ - 1; t >= 0; --t) {
 			Dtype* dh_t = top_diff + top_.offset(t);

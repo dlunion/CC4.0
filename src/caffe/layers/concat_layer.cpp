@@ -67,7 +67,7 @@ void ConcatLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       caffe_copy(bottom_concat_axis * concat_input_size_,
           bottom_data + n * bottom_concat_axis * concat_input_size_,
           top_data + (n * top_concat_axis + offset_concat_axis)
-              * concat_input_size_);
+              * concat_input_size_, 0);
     }
     offset_concat_axis += bottom_concat_axis;
   }
@@ -87,7 +87,7 @@ void ConcatLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
       for (int n = 0; n < num_concats_; ++n) {
         caffe_copy(bottom_concat_axis * concat_input_size_, top_diff +
             (n * top_concat_axis + offset_concat_axis) * concat_input_size_,
-            bottom_diff + n * bottom_concat_axis * concat_input_size_);
+            bottom_diff + n * bottom_concat_axis * concat_input_size_, 0);
       }
     }
     offset_concat_axis += bottom_concat_axis;

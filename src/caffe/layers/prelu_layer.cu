@@ -56,7 +56,7 @@ void PReLULayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
   // For in-place computation
   if (top[0] == bottom[0]) {
-    caffe_copy(count, bottom_data, bottom_memory_.mutable_gpu_data());
+    caffe_copy(count, bottom_data, bottom_memory_.mutable_gpu_data(), 3);
   }
 
   // NOLINT_NEXT_LINE(whitespace/operators)

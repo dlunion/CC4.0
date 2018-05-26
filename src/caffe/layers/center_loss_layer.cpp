@@ -96,7 +96,7 @@ void CenterLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
   // Gradient with respect to bottom data 
   if (propagate_down[0]) {
-    caffe_copy(M_ * K_, distance_.cpu_data(), bottom[0]->mutable_cpu_diff());
+    caffe_copy(M_ * K_, distance_.cpu_data(), bottom[0]->mutable_cpu_diff(), 0);
     caffe_scal(M_ * K_, top[0]->cpu_diff()[0] / M_, bottom[0]->mutable_cpu_diff());
   }
   if (propagate_down[1]) {

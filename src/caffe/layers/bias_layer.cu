@@ -35,7 +35,7 @@ void BiasLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
   if (propagate_down[0] && bottom[0] != top[0]) {
     const Dtype* top_diff = top[0]->gpu_diff();
     Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
-    caffe_copy(bottom[0]->count(), top_diff, bottom_diff);
+    caffe_copy(bottom[0]->count(), top_diff, bottom_diff, 3);
   }
   // in-place, we don't need to do anything with the data diff
   const bool bias_param = (bottom.size() == 1);

@@ -214,6 +214,27 @@ class Blob {
     return cpu_diff()[offset(index)];
   }
 
+  // jay add
+  const Dtype* cpu_data_at(const int n = 0, const int c = 0,
+	  const int h = 0, const int w = 0) const;
+  const Dtype* gpu_data_at(const int n = 0, const int c = 0,
+	  const int h = 0, const int w = 0) const;
+  const Dtype* cpu_diff_at(const int n = 0, const int c = 0,
+	  const int h = 0, const int w = 0) const;
+  const Dtype* gpu_diff_at(const int n = 0, const int c = 0,
+	  const int h = 0, const int w = 0) const;
+  Dtype* mutable_cpu_data_at(const int n = 0, const int c = 0,
+	  const int h = 0, const int w = 0);
+  Dtype* mutable_gpu_data_at(const int n = 0, const int c = 0,
+	  const int h = 0, const int w = 0);
+  Dtype* mutable_cpu_diff_at(const int n = 0, const int c = 0,
+	  const int h = 0, const int w = 0);
+  Dtype* mutable_gpu_diff_at(const int n = 0, const int c = 0,
+	  const int h = 0, const int w = 0);
+  // end jay add
+
+
+
   inline const shared_ptr<SyncedMemory>& data() const {
     CHECK(data_);
     return data_;

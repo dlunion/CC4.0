@@ -14,7 +14,7 @@
 #include <highgui.h>
 #include <thread>
 #include "caffe/layers/cpp_layer.hpp"
-
+ 
 #include <google/protobuf/text_format.h>
 #include <io.h>
 #include <google/protobuf/io/coded_stream.h>

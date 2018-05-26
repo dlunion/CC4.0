@@ -218,6 +218,7 @@ namespace cc{
 		bool getParam(const char* path, Value& val);
 		bool hasParam(const char* path);
 		CCString name();
+		MessageHandle* param();
 
 #ifdef USE_PROTOBUF
 		caffe::LayerParameter& layer_param();
@@ -252,6 +253,7 @@ namespace cc{
 		int num_layers();
 		Layer* layer(const char* name);
 		Layer* layer(int index);
+		size_t memory_used();
 
 	private:
 		void* _native;
@@ -279,6 +281,9 @@ namespace cc{
 		void setBaseLearningRate(float rate);
 		float getBaseLearningRate();
 		void postSnapshotSignal();
+		void TestAll();
+		bool getParam(const char* path, Value& val);
+		MessageHandle param();
 		
 #ifdef USE_PROTOBUF
 		caffe::SolverParameter& solver_param();

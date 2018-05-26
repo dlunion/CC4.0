@@ -4,7 +4,15 @@
     <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|Win32'">
+    <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|x64'">
+    <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|Win32'">
     <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>

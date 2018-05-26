@@ -31,6 +31,10 @@ namespace cc{
 		ptr->Forward(loss);
 	}
 
+	size_t Net::memory_used(){
+		return ptr->memory_used_;
+	}
+
 	void Net::copyTrainedParamFromFile(const char* file){
 		ptr->CopyTrainedLayersFrom(file);
 	}

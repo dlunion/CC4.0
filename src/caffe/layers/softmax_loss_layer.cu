@@ -201,7 +201,7 @@ namespace caffe {
     }
     if (propagate_down[0]) {
       if (has_hard_ratio_ && bottom.size() == 3) {
-        caffe_copy(outer_num_ * inner_num_, loss_.cpu_data(), loss_.mutable_cpu_diff());
+        caffe_copy(outer_num_ * inner_num_, loss_.cpu_data(), loss_.mutable_cpu_diff(), 0);
         std::sort(loss_.mutable_cpu_diff(), loss_.mutable_cpu_diff() + outer_num_ * inner_num_);//thrust::sort
         Dtype loss_threshold = loss_.cpu_diff()[(int)(outer_num_ * inner_num_ * (1 - hard_ratio_))];
         if (has_hard_mining_label_) {

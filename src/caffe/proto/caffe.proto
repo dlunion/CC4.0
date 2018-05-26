@@ -596,6 +596,32 @@ message LayerParameter {
   optional CPPLayerParameter cpp_param = 162;
   optional SmoothL1LossParameter smooth_l1_loss_param = 163;
   optional ROIPoolingParameter roi_pooling_param = 164;
+
+  optional DenseCRFParameter dense_crf_param = 165;
+  optional InterpParameter interp_param = 166;
+}
+
+message InterpParameter {
+  optional int32 height = 1 [default = 0]; // Height of output
+  optional int32 width = 2 [default = 0]; // Width of output
+  optional int32 zoom_factor = 3 [default = 1]; // zoom factor
+  optional int32 shrink_factor = 4 [default = 1]; // shrink factor
+  optional int32 pad_beg = 5 [default = 0]; // padding at begin of input
+  optional int32 pad_end = 6 [default = 0]; // padding at end of input
+}
+
+message DenseCRFParameter {
+  // max number of iteration for message passing
+  optional int32 max_iter = 1 [default = 10];
+  // positional std and weight for "Positional" filter (color-independent)
+  repeated float pos_xy_std = 2;
+  repeated float pos_w = 3;
+  // positional std, color std and weight for Bilateral filter
+  repeated float bi_xy_std = 4;
+  repeated float bi_rgb_std = 5;
+  repeated float bi_w = 6; 
+  // output is probability or score (score = log(prob))
+  optional bool output_probability = 7 [default = true];
 }
 
 // Message that stores parameters used by ROIPoolingLayer

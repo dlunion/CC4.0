@@ -76,22 +76,15 @@ void caffe_gpu_axpy<double>(const int N, const double alpha, const double* X,
   CUBLAS_CHECK(cublasDaxpy(Caffe::cublas_handle(), N, &alpha, X, 1, Y, 1));
 }
 
-void caffe_gpu_memcpy(const size_t N, const void* X, void* Y) {
+void caffe_gpu_memcpy(const size_t N, const void* X, void* Y, int type) {
 	if (X != Y) {
-		//hope-change.
-		//CUDA_CHECK(cudaMemcpy(Y, X, N, cudaMemcpyDefault));  // NOLINT(caffe/alt_fn)
-		CUDA_CHECK(cudaMemcpy(Y, X, N, cudaMemcpyDefault));
-
-		#if 0
-		if (cudaMemcpy(Y, X, N, cudaMemcpyDefault) != cudaSuccess){  // NOLINT(caffe/alt_fn)
-			cudaMemcpy(Y, X, N, cudaMemcpyDefault);
-			cudaMemcpy(Y, X, N, cudaMemcpyDefault);
-			cudaMemcpy(Y, X, N, cudaMemcpyDefault);
-			cudaMemcpy(Y, X, N, cudaMemcpyDefault);
-			cudaMemcpy(Y, X, N, cudaMemcpyDefault);
-		}
-		#endif
-  }
+		//cudaMemcpyHostToHost		= 0,      /**< Host   -> Host */
+		//cudaMemcpyHostToDevice	= 1,      /**< Host   -> Device */
+		//cudaMemcpyDeviceToHost	= 2,      /**< Device -> Host */
+		//cudaMemcpyDeviceToDevice	= 3,      /**< Device -> Device */
+		//cudaMemcpyDefault			= 4       /**< Default based unified virtual address space */
+		CUDA_CHECK(cudaMemcpy(Y, X, N, (cudaMemcpyKind)type));
+	}
 }
 
 template <>

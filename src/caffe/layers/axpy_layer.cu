@@ -84,7 +84,7 @@ void AxpyLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
         bottom[1]->mutable_gpu_diff());
   }
   if (propagate_down[2]) {
-    caffe_copy(count, top_diff, bottom[2]->mutable_gpu_diff());
+    caffe_copy(count, top_diff, bottom[2]->mutable_gpu_diff(), 3);
   }
   CUDA_POST_KERNEL_CHECK;
 }
