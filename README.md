@@ -1,5 +1,5 @@
 # CC4.0
-Caffe for CC4.0-Windows，简单的Caffe C++接口，方便简单而更深入的研究深度学习
+Caffe for CC4.0-Windows，简单的Caffe C++接口，方便简单而更深入的研究深度学习 a
 
 # 特性
 1.只需要一个头文件和一个依赖项libcaffe.lib<br/>
