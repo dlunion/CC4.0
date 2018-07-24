@@ -38,7 +38,7 @@ inline void SyncedMemory::to_cpu() {
       CaffeMallocHost(&cpu_ptr_, size_, &cpu_malloc_use_cuda_);
       own_cpu_data_ = true;
     }
-    caffe_gpu_memcpy(size_, gpu_ptr_, cpu_ptr_, 2);
+    caffe_gpu_memcpy(size_, gpu_ptr_, cpu_ptr_);
     head_ = SYNCED;
 #else
     NO_GPU;
@@ -51,9 +51,12 @@ inline void SyncedMemory::to_cpu() {
 }
 
 inline void SyncedMemory::to_gpu() {
+	//static long size_total = 0;
 #ifndef CPU_ONLY
   switch (head_) {
   case UNINITIALIZED:
+	 // size_total += size_;
+	  //printf("cudaMalloc: %ld bytes(%.2f MB)[%.2f GB]\n", size_, size_ / (double)(1024 * 1024), size_total / (double)(1024 * 1024 * 1024));
     CUDA_CHECK(cudaGetDevice(&gpu_device_));
     CUDA_CHECK(cudaMalloc(&gpu_ptr_, size_));
     caffe_gpu_memset(size_, 0, gpu_ptr_);
@@ -66,7 +69,7 @@ inline void SyncedMemory::to_gpu() {
       CUDA_CHECK(cudaMalloc(&gpu_ptr_, size_));
       own_gpu_data_ = true;
     }
-    caffe_gpu_memcpy(size_, cpu_ptr_, gpu_ptr_, 1);
+    caffe_gpu_memcpy(size_, cpu_ptr_, gpu_ptr_);
     head_ = SYNCED;
     break;
   case HEAD_AT_GPU:
@@ -102,7 +105,7 @@ const void* SyncedMemory::gpu_data() {
   return NULL;
 #endif
 }
- 
+
 void SyncedMemory::set_gpu_data(void* data) {
 #ifndef CPU_ONLY
   CHECK(data);

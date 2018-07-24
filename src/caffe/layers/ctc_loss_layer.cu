@@ -25,7 +25,7 @@ namespace caffe {
   void CtcLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
       cudaDeviceSynchronize();
-	  ctcOptions options;
+      auto options = ctcOptions{};
       options.loc = CTC_GPU;
       CUDA_CHECK(cudaStreamCreate(&(options.stream)));
       options.blank_label = blank_label_;

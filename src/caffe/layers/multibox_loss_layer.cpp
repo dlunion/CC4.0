@@ -298,7 +298,7 @@ void MultiBoxLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
             // Copy the diff to the right place.
             int start_idx = loc_classes_ * 4 * j + label * 4;
             caffe_copy<Dtype>(4, loc_pred_diff + count * 4,
-                              loc_bottom_diff + start_idx, 0);
+                              loc_bottom_diff + start_idx);
             ++count;
           }
         }
@@ -342,7 +342,7 @@ void MultiBoxLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
               // Copy the diff to the right place.
               caffe_copy<Dtype>(num_classes_,
                                 conf_pred_diff + count * num_classes_,
-                                conf_bottom_diff + j * num_classes_, 0);
+                                conf_bottom_diff + j * num_classes_);
               ++count;
             }
           }
@@ -352,7 +352,7 @@ void MultiBoxLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
             CHECK_LT(j, num_priors_);
             caffe_copy<Dtype>(num_classes_,
                               conf_pred_diff + count * num_classes_,
-                              conf_bottom_diff + j * num_classes_, 0);
+                              conf_bottom_diff + j * num_classes_);
             ++count;
           }
           conf_bottom_diff += bottom[1]->offset(1);

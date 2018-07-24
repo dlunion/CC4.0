@@ -36,3 +36,7 @@
 #		pragma comment(lib, "libopenblas.dll.a")
 #	endif
 #endif
+
+#ifdef USE_CC_PYTHON
+#	pragma comment(lib, "python27.lib")
+#endif

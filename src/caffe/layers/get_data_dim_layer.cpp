@@ -42,8 +42,8 @@ void GetDataDimLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     const vector<Blob<Dtype>*>& bottom) {
 }
 
-#ifdef CPU_ONLY
-STUB_GPU(GetDataDimLayer);
+#ifndef CPU_ONLY
+//STUB_GPU(GetDataDimLayer);
 #endif
 
 INSTANTIATE_CLASS(GetDataDimLayer);

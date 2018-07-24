@@ -66,7 +66,7 @@ class Solver {
   // that stores the learned net. You should implement the SnapshotSolverState()
   // function that produces a SolverState protocol buffer that needs to be
   // written to disk together with the learned net.
-  void Snapshot();
+  void Snapshot(const char* filepath = 0, bool save_solver_state = true);
   void postSnapshotSignal();
   virtual ~Solver();
   inline const SolverParameter& param() const { return param_; }
@@ -102,9 +102,9 @@ class Solver {
 	void attachCCSolver();
   // Make and apply the update value for the current iteration.
   virtual void ApplyUpdate() = 0;
-  string SnapshotFilename(const string extension);
-  string SnapshotToBinaryProto();
-  string SnapshotToHDF5();
+  string SnapshotFilename(const string& caffemodelpath, const string& extension);
+  string SnapshotToBinaryProto(const char* filepath = 0);
+  string SnapshotToHDF5(const char* filepath = 0);
   // The test routine
   void TestAll();
   void TestClassification(const int test_net_id = 0);

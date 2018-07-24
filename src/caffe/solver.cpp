@@ -726,21 +726,22 @@ void Solver<Dtype>::TestDetection(const int test_net_id) {
 }
 
 template <typename Dtype>
-void Solver<Dtype>::Snapshot() {
+void Solver<Dtype>::Snapshot(const char* filepath, bool save_solver_state) {
   CHECK(Caffe::root_solver());
   string model_filename;
   switch (param_.snapshot_format()) {
   case caffe::SolverParameter_SnapshotFormat_BINARYPROTO:
-    model_filename = SnapshotToBinaryProto();
+	  model_filename = SnapshotToBinaryProto(filepath);
     break;
   case caffe::SolverParameter_SnapshotFormat_HDF5:
-    model_filename = SnapshotToHDF5();
+	  model_filename = SnapshotToHDF5(filepath);
     break;
   default:
     LOG(FATAL) << "Unsupported snapshot format.";
   }
 
-  SnapshotSolverState(model_filename);
+  if (save_solver_state)
+	SnapshotSolverState(model_filename);
 }
 
 template <typename Dtype>
@@ -748,7 +749,7 @@ void Solver<Dtype>::CheckSnapshotWritePermissions() {
   if (Caffe::root_solver() && param_.snapshot()) {
     CHECK(param_.has_snapshot_prefix())
         << "In solver params, snapshot is specified but snapshot_prefix is not";
-    string probe_filename = SnapshotFilename(".tempfile");
+    string probe_filename = SnapshotFilename("", ".tempfile");
 	int p = probe_filename.rfind("/");
 	p = p == -1 ? probe_filename.rfind("\\") : p;
 	char* str = (char*)probe_filename.c_str();
@@ -780,14 +781,18 @@ void Solver<Dtype>::CheckSnapshotWritePermissions() {
 }
 
 template <typename Dtype>
-string Solver<Dtype>::SnapshotFilename(const string extension) {
-  return param_.snapshot_prefix() + "_iter_" + caffe::format_int(iter_)
-    + extension;
+string Solver<Dtype>::SnapshotFilename(const string& caffemodelpath, const string& extension) {
+	if (caffemodelpath.empty())
+		return param_.snapshot_prefix() + "_iter_" + caffe::format_int(iter_) + extension;
+	else{
+		int pp = caffemodelpath.rfind('.');
+		return (pp == -1 ? caffemodelpath : caffemodelpath.substr(0, pp)) + extension;
+	}
 }
 
 template <typename Dtype>
-string Solver<Dtype>::SnapshotToBinaryProto() {
-  string model_filename = SnapshotFilename(".caffemodel");
+string Solver<Dtype>::SnapshotToBinaryProto(const char* filepath) {
+	string model_filename = filepath ? filepath : SnapshotFilename("", ".caffemodel");
   LOG(INFO) << "Snapshotting to binary proto file " << model_filename;
   NetParameter net_param;
   net_->ToProto(&net_param, param_.snapshot_diff());
@@ -796,8 +801,8 @@ string Solver<Dtype>::SnapshotToBinaryProto() {
 }
 
 template <typename Dtype>
-string Solver<Dtype>::SnapshotToHDF5() {
-  string model_filename = SnapshotFilename(".caffemodel.h5");
+string Solver<Dtype>::SnapshotToHDF5(const char* filepath) {
+	string model_filename = filepath ? filepath : SnapshotFilename("", ".caffemodel.h5");
   LOG(INFO) << "Snapshotting to HDF5 file " << model_filename;
   net_->ToHDF5(model_filename, param_.snapshot_diff());
   return model_filename;

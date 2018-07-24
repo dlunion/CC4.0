@@ -1,3 +1,7 @@
-如果要编译，请下载3rd.rar后解压缩到这个目录下
-
-https://pan.baidu.com/s/1Dc38GgfZ8TQ79ll162k_wA
+# 3rd
+请下载3rd.rar，解压到本目录即可
+目录结构如下：
+3rd:
+   --include
+   --staticlib
+   --README.md

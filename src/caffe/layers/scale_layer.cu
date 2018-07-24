@@ -37,7 +37,7 @@ void ScaleLayer<Dtype>::Forward_gpu(
     // doing Backward, but Caffe currently provides no way of knowing whether
     // we'll need to do Backward at the time of the Forward call.
     caffe_copy(bottom[0]->count(), bottom[0]->gpu_data(),
-               temp_.mutable_gpu_data(), 3);
+               temp_.mutable_gpu_data());
   }
   const Dtype* scale_data =
       ((bottom.size() > 1) ? bottom[1] : this->blobs_[0].get())->gpu_data();

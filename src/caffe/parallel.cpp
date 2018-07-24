@@ -33,7 +33,7 @@ static void apply_buffers(const vector<Blob<Dtype>*>& blobs,
         // Init buffer to current values of blobs
         caffe_copy(size,
                    reinterpret_cast<const Dtype*>(blobs[i]->data()->cpu_data()),
-                   ptr, 0);
+                   ptr);
         break;
       }
       case replace_cpu:

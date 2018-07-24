@@ -518,19 +518,19 @@ void Blob<Dtype>::CopyFrom(const Blob& source, bool copy_diff, bool reshape) {
   case Caffe::GPU:
     if (copy_diff) {
       caffe_copy(count_, source.gpu_diff(),
-          static_cast<Dtype*>(diff_->mutable_gpu_data()), 3);
+          static_cast<Dtype*>(diff_->mutable_gpu_data()));
     } else {
       caffe_copy(count_, source.gpu_data(),
-          static_cast<Dtype*>(data_->mutable_gpu_data()), 3);
+          static_cast<Dtype*>(data_->mutable_gpu_data()));
     }
     break;
   case Caffe::CPU:
     if (copy_diff) {
       caffe_copy(count_, source.cpu_diff(),
-          static_cast<Dtype*>(diff_->mutable_cpu_data()), 0);
+          static_cast<Dtype*>(diff_->mutable_cpu_data()));
     } else {
       caffe_copy(count_, source.cpu_data(),
-          static_cast<Dtype*>(data_->mutable_cpu_data()), 0);
+          static_cast<Dtype*>(data_->mutable_cpu_data()));
     }
     break;
   default:

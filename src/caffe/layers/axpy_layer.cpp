@@ -36,7 +36,7 @@ void AxpyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   const Dtype* scale_data = bottom[0]->cpu_data();
   const Dtype* x_data = bottom[1]->cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
-  caffe_copy(bottom[2]->count(), bottom[2]->cpu_data(), top_data, 0);
+  caffe_copy(bottom[2]->count(), bottom[2]->cpu_data(), top_data);
   for (int n = 0; n < bottom[1]->num(); ++n) {
     for (int c = 0; c < channel_dim; ++c) {
       int scale_offset = n * channel_dim + c;
@@ -80,7 +80,7 @@ void AxpyLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     }
   }
   if (propagate_down[2]) {
-    caffe_copy(count, top_diff, bottom[2]->mutable_cpu_diff(), 0);
+    caffe_copy(count, top_diff, bottom[2]->mutable_cpu_diff());
   }
 }
 

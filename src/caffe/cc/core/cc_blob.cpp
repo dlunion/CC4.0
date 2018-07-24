@@ -34,7 +34,7 @@ namespace cc{
 
 	void Blob::setDataRGB(int numIndex, const Mat& data){
 		CHECK(!data.empty()) << "data is empty";
-		CHECK_EQ(CV_MAT_DEPTH(data.type()), CV_32F) << "data type not match.";
+		//CHECK_EQ(CV_MAT_DEPTH(data.type()), CV_32F) << "data type not match.";
 		CHECK_EQ(data.channels(), this->channel()) << "data channel error";
 
 		int w = this->width();
@@ -42,6 +42,9 @@ namespace cc{
 		Mat udata = data;
 		if (udata.size() != cv::Size(w, h))
 			resize(udata, udata, cv::Size(w, h));
+
+		if (CV_MAT_DEPTH(udata.type()) != CV_32F)
+			udata.convertTo(udata, CV_32F);
 
 		int channel_size = w*h;
 		int num_size = this->channel() * channel_size;
@@ -101,6 +104,10 @@ namespace cc{
 	}
 
 	void Blob::Reshape(int num, int channels, int height, int width){
+		num = num == -1 ? ptr->num() : num;
+		channels = channels == -1 ? ptr->channels() : channels;
+		height = height == -1 ? ptr->height() : height;
+		width = width == -1 ? ptr->width() : width;
 		ptr->Reshape(num, channels, height, width);
 	}
 
@@ -114,6 +121,16 @@ namespace cc{
 
 	void Blob::copyFrom(const Blob& other, bool copyDiff, bool reshape){
 		ptr->CopyFrom(*cvt(other._native), copyDiff, reshape);
+	}
+
+	void Blob::copyFrom(const BlobData& other){
+		if (ptr->num() != other.num || ptr->channels() != other.channels || ptr->width() != other.width || ptr->height() != other.height){
+			ptr->Reshape(other.num, other.channels, other.height, other.width);
+		}
+
+		if (other.count() > 0){
+			memcpy(ptr->mutable_cpu_data(), other.list, sizeof(float)*other.count());
+		}
 	}
 
 	float* Blob::mutable_cpu_data(){
@@ -155,4 +172,66 @@ namespace cc{
 	int Blob::num() const {
 		return ptr->num();
 	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	BlobData::BlobData()
+		:list(0), num(0), height(0), width(0), channels(0), capacity_count(0)
+	{}
+
+	BlobData::~BlobData(){
+		release();
+	}
+
+	bool BlobData::empty() const{
+		return count() < 1;
+	}
+
+	int BlobData::count() const{
+		return num*height*width*channels;
+	}
+
+	void BlobData::reshape(int num, int channels, int height, int width){
+		this->num = num;
+		this->channels = channels;
+		this->height = height;
+		this->width = width;
+
+		if (this->capacity_count < this->count()){
+			if (this->list)
+				delete[] this->list;
+
+			this->list = this->count() > 0 ? new float[this->count()] : 0;
+			this->capacity_count = this->count();
+		}
+	}
+
+	void BlobData::copyFrom(const Blob* other){
+		reshapeLike(other);
+		if (other->count() > 0){
+			memcpy(this->list, other->cpu_data(), this->count()*sizeof(float));
+		}
+	}
+
+	void BlobData::reshapeLike(const Blob* other){
+		reshape(other->num(), other->channel(), other->height(), other->width());
+	}
+
+	void BlobData::reshapeLike(const BlobData* other){
+		reshape(other->num, other->channels, other->height, other->width);
+	}
+
+	void BlobData::copyFrom(const BlobData* other){
+		reshapeLike(other);
+		if (other->count() > 0){
+			memcpy(this->list, other->list, this->count()*sizeof(float));
+		}
+	}
+
+	void BlobData::release(){
+		if (list){
+			delete[]list;
+			list = 0;
+		}
+	}
+
 }

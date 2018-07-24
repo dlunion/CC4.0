@@ -28,10 +28,29 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\caffe\3rdparty\ctc.h" />
+    <ClInclude Include="..\include\caffe\3rdparty\detail\cpu_ctc.cuh" />
     <ClInclude Include="..\include\caffe\3rdparty\detail\ctc_helper.h" />
+    <ClInclude Include="..\include\caffe\3rdparty\detail\gpu_ctc.cuh" />
+    <ClInclude Include="..\include\caffe\3rdparty\detail\gpu_ctc_kernels.cuh" />
+    <ClInclude Include="..\include\caffe\3rdparty\detail\hostdevice.cuh" />
+    <ClInclude Include="..\include\caffe\3rdparty\detail\reduce.cuh" />
     <ClInclude Include="..\include\caffe\blob.hpp" />
     <ClInclude Include="..\include\caffe\caffe.hpp" />
+    <ClInclude Include="..\include\caffe\cc\core\cc.h" />
+    <ClInclude Include="..\include\caffe\cc\core\cc_utils.h" />
+    <ClInclude Include="..\include\caffe\cc\import\import-caffe-staticlib.h" />
+    <ClInclude Include="..\include\caffe\cc\import\import-cuda-lib.h" />
+    <ClInclude Include="..\include\caffe\cc\import\import-opencv-staticlib.h" />
+    <ClInclude Include="..\include\caffe\cc\import\import-staticlib.h" />
     <ClInclude Include="..\include\caffe\common.hpp" />
+    <ClInclude Include="..\include\caffe\ctc\cpu_ctc.h" />
+    <ClInclude Include="..\include\caffe\ctc\ctc.h" />
+    <ClInclude Include="..\include\caffe\ctc\ctcpp.hpp" />
+    <ClInclude Include="..\include\caffe\ctc\ctc_helper.h" />
+    <ClInclude Include="..\include\caffe\ctc\gpu_ctc.h" />
+    <ClInclude Include="..\include\caffe\ctc\gpu_ctc_kernels.h" />
+    <ClInclude Include="..\include\caffe\ctc\hostdevice.h" />
+    <ClInclude Include="..\include\caffe\ctc\reduce.h" />
     <ClInclude Include="..\include\caffe\data_reader.hpp" />
     <ClInclude Include="..\include\caffe\data_transformer.hpp" />
     <ClInclude Include="..\include\caffe\filler.hpp" />
@@ -41,6 +60,7 @@
     <ClInclude Include="..\include\caffe\layers\accuracy_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\annotated_data_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\argmax_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\axpy_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\base_conv_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\base_data_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\batch_norm_layer.hpp" />
@@ -51,9 +71,10 @@
     <ClInclude Include="..\include\caffe\layers\concat_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\continuation_indicator_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\contrastive_loss_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\conv_dw_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\conv_layer.hpp" />
-    <ClInclude Include="..\include\caffe\layers\cpp_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\crop_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\ctc_loss_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\cudnn_conv_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\cudnn_lcn_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\cudnn_lrn_layer.hpp" />
@@ -76,17 +97,22 @@
     <ClInclude Include="..\include\caffe\layers\filter_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\flatten_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\flip_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\get_data_dim_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\hdf5_data_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\hdf5_output_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\hinge_loss_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\im2col_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\image_data_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\infogain_loss_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\inner_product_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\input_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\labelsequence_accuracy_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\log_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\loss_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\lrn_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\lstm_common_layers.hpp" />
     <ClInclude Include="..\include\caffe\layers\lstm_LSTM_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\memory_data_layer-old.hpp" />
     <ClInclude Include="..\include\caffe\layers\memory_data_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\mtcnn_data_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\mtcnn_euclidean_loss_layer.hpp" />
@@ -108,6 +134,7 @@
     <ClInclude Include="..\include\caffe\layers\relu_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\reshape_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\rnn_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\roi_pooling_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\scale_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\sigmoid_cross_entropy_loss_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\sigmoid_layer.hpp" />
@@ -115,6 +142,7 @@
     <ClInclude Include="..\include\caffe\layers\slice_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\smooth_L1_loss_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\softmax_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\softmax_loss_layer-old.hpp" />
     <ClInclude Include="..\include\caffe\layers\softmax_loss_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\split_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\spp_layer.hpp" />
@@ -123,6 +151,7 @@
     <ClInclude Include="..\include\caffe\layers\tanh_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\threshold_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\tile_layer.hpp" />
+    <ClInclude Include="..\include\caffe\layers\video_data_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\window_data_layer.hpp" />
     <ClInclude Include="..\include\caffe\layer_factory.hpp" />
     <ClInclude Include="..\include\caffe\net.hpp" />
@@ -136,6 +165,7 @@
     <ClInclude Include="..\include\caffe\util\benchmark.hpp" />
     <ClInclude Include="..\include\caffe\util\blocking_queue.hpp" />
     <ClInclude Include="..\include\caffe\util\cudnn.hpp" />
+    <ClInclude Include="..\include\caffe\util\data_augmented.hpp" />
     <ClInclude Include="..\include\caffe\util\db.hpp" />
     <ClInclude Include="..\include\caffe\util\db_leveldb.hpp" />
     <ClInclude Include="..\include\caffe\util\db_lmdb.hpp" />
@@ -147,20 +177,21 @@
     <ClInclude Include="..\include\caffe\util\io.hpp" />
     <ClInclude Include="..\include\caffe\util\math_functions.hpp" />
     <ClInclude Include="..\include\caffe\util\mkl_alternate.hpp" />
+    <ClInclude Include="..\include\caffe\util\mtcnn_data_gen.hpp" />
+    <ClInclude Include="..\include\caffe\util\pa_file.h" />
     <ClInclude Include="..\include\caffe\util\rng.hpp" />
     <ClInclude Include="..\include\caffe\util\sampler.hpp" />
     <ClInclude Include="..\include\caffe\util\signal_handler.h" />
     <ClInclude Include="..\include\caffe\util\upgrade_proto.hpp" />
-    <ClInclude Include="..\src\caffe\util\xml\tinystr.h" />
-    <ClInclude Include="..\src\caffe\util\xml\tinyxml.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\caffe\3rdparty\ctc_entrypoint.cpp" />
     <ClCompile Include="..\src\caffe\blob.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_blob.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_core.cpp" />
-    <ClCompile Include="..\src\caffe\cc\core\cc_math_functions.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_layer.cpp" />
+    <ClCompile Include="..\src\caffe\cc\core\cc_map.cpp" />
+    <ClCompile Include="..\src\caffe\cc\core\cc_math_functions.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_net.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_solver.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_utils.cpp" />
@@ -201,6 +232,7 @@
     <ClCompile Include="..\src\caffe\layers\cudnn_tanh_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\data_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\deconv_layer.cpp" />
+    <ClCompile Include="..\src\caffe\layers\densecrf_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\detection_evaluate_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\detection_output_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\dropout_layer.cpp" />
@@ -213,12 +245,14 @@
     <ClCompile Include="..\src\caffe\layers\filter_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\flatten_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\flip_layer.cpp" />
+    <ClCompile Include="..\src\caffe\layers\get_data_dim_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\hinge_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\im2col_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\image_data_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\infogain_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\inner_product_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\input_layer.cpp" />
+    <ClCompile Include="..\src\caffe\layers\interp_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\labelsequence_accuracy_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\log_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\loss_layer.cpp" />
@@ -228,8 +262,6 @@
     <ClCompile Include="..\src\caffe\layers\lstm_LSTM_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\lstm_LSTM_unit_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\memory_data_layer.cpp" />
-    <ClCompile Include="..\src\caffe\layers\mtcnn_data_layer.cpp" />
-    <ClCompile Include="..\src\caffe\layers\mtcnn_euclidean_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\multibox_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\multinomial_logistic_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\mvn_layer.cpp" />
@@ -248,6 +280,7 @@
     <ClCompile Include="..\src\caffe\layers\reshape_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\reverse_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\rnn_layer.cpp" />
+    <ClCompile Include="..\src\caffe\layers\roi_pooling_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\scale_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\sigmoid_cross_entropy_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\sigmoid_layer.cpp" />
@@ -256,9 +289,9 @@
     <ClCompile Include="..\src\caffe\layers\smooth_L1_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\softmax_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\softmax_loss_layer.cpp" />
+    <ClCompile Include="..\src\caffe\layers\spatial_product_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\split_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\spp_layer.cpp" />
-    <ClCompile Include="..\src\caffe\layers\ssd_data_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\st_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\st_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\tanh_layer.cpp" />
@@ -284,114 +317,28 @@
     <ClCompile Include="..\src\caffe\util\benchmark.cpp" />
     <ClCompile Include="..\src\caffe\util\blocking_queue.cpp" />
     <ClCompile Include="..\src\caffe\util\cudnn.cpp" />
-    <ClCompile Include="..\src\caffe\util\data_augmented.cpp" />
     <ClCompile Include="..\src\caffe\util\db.cpp" />
     <ClCompile Include="..\src\caffe\util\db_leveldb.cpp" />
     <ClCompile Include="..\src\caffe\util\db_lmdb.cpp" />
+    <ClCompile Include="..\src\caffe\util\densecrf_pairwise.cpp" />
+    <ClCompile Include="..\src\caffe\util\densecrf_util.cpp" />
     <ClCompile Include="..\src\caffe\util\im2col.cpp" />
     <ClCompile Include="..\src\caffe\util\im_transforms.cpp" />
     <ClCompile Include="..\src\caffe\util\insert_splits.cpp" />
+    <ClCompile Include="..\src\caffe\util\interp.cpp" />
     <ClCompile Include="..\src\caffe\util\io.cpp" />
     <ClCompile Include="..\src\caffe\util\math_functions.cpp" />
-    <ClCompile Include="..\src\caffe\util\mtcnn_data_gen.cpp" />
+    <ClCompile Include="..\src\caffe\util\model_crypt.cpp" />
     <ClCompile Include="..\src\caffe\util\pa_draw.cpp" />
     <ClCompile Include="..\src\caffe\util\pa_file.cpp" />
+    <ClCompile Include="..\src\caffe\util\permutohedral.cpp" />
     <ClCompile Include="..\src\caffe\util\sampler.cpp" />
     <ClCompile Include="..\src\caffe\util\signal_handler.cpp" />
-    <ClCompile Include="..\src\caffe\util\ssd_augmented.cpp" />
     <ClCompile Include="..\src\caffe\util\upgrade_proto.cpp" />
     <ClCompile Include="..\src\caffe\util\xml\tinystr.cpp" />
     <ClCompile Include="..\src\caffe\util\xml\tinyxml.cpp" />
     <ClCompile Include="..\src\caffe\util\xml\tinyxmlerror.cpp" />
     <ClCompile Include="..\src\caffe\util\xml\tinyxmlparser.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\include\caffe\3rdparty\detail\cpu_ctc.cuh" />
-    <None Include="..\include\caffe\3rdparty\detail\gpu_ctc.cuh" />
-    <None Include="..\include\caffe\3rdparty\detail\gpu_ctc_kernels.cuh" />
-    <None Include="..\include\caffe\3rdparty\detail\hostdevice.cuh" />
-    <None Include="..\include\caffe\3rdparty\detail\reduce.cuh" />
-    <None Include="..\src\caffe\3rdparty\ctc_entrypoint.cu" />
-    <None Include="..\src\caffe\3rdparty\reduce.cu" />
-    <None Include="..\src\caffe\layers\absval_layer.cu" />
-    <None Include="..\src\caffe\layers\base_data_layer.cu" />
-    <None Include="..\src\caffe\layers\batch_norm_layer.cu" />
-    <None Include="..\src\caffe\layers\batch_reindex_layer.cu" />
-    <None Include="..\src\caffe\layers\bias_layer.cu" />
-    <None Include="..\src\caffe\layers\bnll_layer.cu" />
-    <None Include="..\src\caffe\layers\center_loss_layer.cu" />
-    <None Include="..\src\caffe\layers\concat_layer.cu" />
-    <None Include="..\src\caffe\layers\continuation_indicator_layer.cu" />
-    <None Include="..\src\caffe\layers\contrastive_loss_layer.cu" />
-    <None Include="..\src\caffe\layers\conv_dw_layer.cu" />
-    <None Include="..\src\caffe\layers\conv_layer.cu" />
-    <None Include="..\src\caffe\layers\crop_layer.cu" />
-    <None Include="..\src\caffe\layers\ctcpp_entrypoint.cu" />
-    <None Include="..\src\caffe\layers\ctc_loss_layer.cu" />
-    <None Include="..\src\caffe\layers\cudnn_conv_layer.cu" />
-    <None Include="..\src\caffe\layers\cudnn_lcn_layer.cu" />
-    <None Include="..\src\caffe\layers\cudnn_lrn_layer.cu" />
-    <None Include="..\src\caffe\layers\cudnn_pooling_layer.cu" />
-    <None Include="..\src\caffe\layers\cudnn_relu_layer.cu" />
-    <None Include="..\src\caffe\layers\cudnn_sigmoid_layer.cu" />
-    <None Include="..\src\caffe\layers\cudnn_softmax_layer.cu" />
-    <None Include="..\src\caffe\layers\cudnn_tanh_layer.cu" />
-    <None Include="..\src\caffe\layers\deconv_layer.cu" />
-    <None Include="..\src\caffe\layers\detection_output_layer.cu" />
-    <None Include="..\src\caffe\layers\dropout_layer.cu" />
-    <None Include="..\src\caffe\layers\eltwise_layer.cu" />
-    <None Include="..\src\caffe\layers\elu_layer.cu" />
-    <None Include="..\src\caffe\layers\embed_layer.cu" />
-    <None Include="..\src\caffe\layers\euclidean_loss_layer.cu" />
-    <None Include="..\src\caffe\layers\exp_layer.cu" />
-    <None Include="..\src\caffe\layers\filter_layer.cu" />
-    <None Include="..\src\caffe\layers\flip_layer.cu" />
-    <None Include="..\src\caffe\layers\im2col_layer.cu" />
-    <None Include="..\src\caffe\layers\inner_product_layer.cu" />
-    <None Include="..\src\caffe\layers\log_layer.cu" />
-    <None Include="..\src\caffe\layers\lrn_layer.cu" />
-    <None Include="..\src\caffe\layers\lstm_junhyuk_layer.cu" />
-    <None Include="..\src\caffe\layers\lstm_layer.cu" />
-    <None Include="..\src\caffe\layers\lstm_LSTM_unit_layer.cu" />
-    <None Include="..\src\caffe\layers\mtcnn_data_layer.cu" />
-    <None Include="..\src\caffe\layers\mtcnn_euclidean_loss_layer.cu" />
-    <None Include="..\src\caffe\layers\mvn_layer.cu" />
-    <None Include="..\src\caffe\layers\normalize_layer.cu" />
-    <None Include="..\src\caffe\layers\permute_layer.cu" />
-    <None Include="..\src\caffe\layers\pooling_layer.cu" />
-    <None Include="..\src\caffe\layers\power_layer.cu" />
-    <None Include="..\src\caffe\layers\predict_box_layer.cu" />
-    <None Include="..\src\caffe\layers\prelu_layer.cu" />
-    <None Include="..\src\caffe\layers\recurrent_layer.cu" />
-    <None Include="..\src\caffe\layers\reduction_layer.cu" />
-    <None Include="..\src\caffe\layers\relu_layer.cu" />
-    <None Include="..\src\caffe\layers\reverse_layer.cu" />
-    <None Include="..\src\caffe\layers\roi_pooling_layer.cu" />
-    <None Include="..\src\caffe\layers\scale_layer.cu" />
-    <None Include="..\src\caffe\layers\sigmoid_cross_entropy_loss_layer.cu" />
-    <None Include="..\src\caffe\layers\sigmoid_layer.cu" />
-    <None Include="..\src\caffe\layers\silence_layer.cu" />
-    <None Include="..\src\caffe\layers\slice_layer.cu" />
-    <None Include="..\src\caffe\layers\smooth_L1_loss_layer.cu" />
-    <None Include="..\src\caffe\layers\softmax_layer.cu" />
-    <None Include="..\src\caffe\layers\softmax_loss_layer.cu" />
-    <None Include="..\src\caffe\layers\split_layer.cu" />
-    <None Include="..\src\caffe\layers\st_layer.cu" />
-    <None Include="..\src\caffe\layers\st_loss_layer.cu" />
-    <None Include="..\src\caffe\layers\tanh_layer.cu" />
-    <None Include="..\src\caffe\layers\threshold_layer.cu" />
-    <None Include="..\src\caffe\layers\tile_layer.cu" />
-    <None Include="..\src\caffe\layers\transpose_layer.cu" />
-    <None Include="..\src\caffe\layers\warp_ctc_loss_layer.cu" />
-    <None Include="..\src\caffe\solvers\adadelta_solver.cu" />
-    <None Include="..\src\caffe\solvers\adagrad_solver.cu" />
-    <None Include="..\src\caffe\solvers\adam_solver.cu" />
-    <None Include="..\src\caffe\solvers\nesterov_solver.cu" />
-    <None Include="..\src\caffe\solvers\rmsprop_solver.cu" />
-    <None Include="..\src\caffe\solvers\sgd_solver.cu" />
-    <None Include="..\src\caffe\util\bbox_util.cu" />
-    <None Include="..\src\caffe\util\im2col.cu" />
-    <None Include="..\src\caffe\util\math_functions.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C140902D-9AB4-4C4E-8684-9077C476CDB7}</ProjectGuid>
@@ -439,7 +386,7 @@
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -649,7 +596,8 @@ copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\cpu\$(Configuration)\$(Pla
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>shlwapi.lib;gflags_static.lib;libprotobuf.lib;libglog_static.lib;libopenblas.dll.a</AdditionalDependencies>
       <MinimumRequiredVersion>5.04</MinimumRequiredVersion>
-      <ModuleDefinitionFile>def.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
       <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>

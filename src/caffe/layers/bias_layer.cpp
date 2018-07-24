@@ -76,7 +76,7 @@ void BiasLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   Dtype* top_data = top[0]->mutable_cpu_data();
   if (bottom[0] != top[0]) {
     const Dtype* bottom_data = bottom[0]->cpu_data();
-    caffe_copy(bottom[0]->count(), bottom_data, top_data, 0);
+    caffe_copy(bottom[0]->count(), bottom_data, top_data);
   }
   for (int n = 0; n < outer_dim_; ++n) {
     caffe_cpu_gemm(CblasNoTrans, CblasNoTrans, bias_dim_,
@@ -92,7 +92,7 @@ void BiasLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   if (propagate_down[0] && bottom[0] != top[0]) {
     const Dtype* top_diff = top[0]->cpu_diff();
     Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
-    caffe_copy(bottom[0]->count(), top_diff, bottom_diff, 0);
+    caffe_copy(bottom[0]->count(), top_diff, bottom_diff);
   }
   // in-place, we don't need to do anything with the data diff
   const bool bias_param = (bottom.size() == 1);

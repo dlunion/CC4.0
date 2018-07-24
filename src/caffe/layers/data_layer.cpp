@@ -8,7 +8,6 @@
 #include "caffe/data_transformer.hpp"
 #include "caffe/layers/data_layer.hpp"
 #include "caffe/util/benchmark.hpp"
-#include "caffe/util/data_augmented.hpp"
 #include <cv.h>
 #include <vector>
 using namespace cv;
@@ -101,42 +100,6 @@ namespace caffe {
 			this->data_transformer_->Transform(datum, &(this->transformed_data_));
 			int imw = this->transformed_data_.width();
 			int imh = this->transformed_data_.height();
-
-			if(global_augmented){
-				vector<Mat> ms(this->transformed_data_.channels());
-
-				for (int m = 0; m < ms.size(); ++m){
-					Dtype* ptr = top_data + imw * imh * m + item_id * imw * imh * this->transformed_data_.channels();
-					ms[m] = Mat(imh, imw, CV_32F, ptr);
-				}
-				Mat mm;
-				merge(ms, mm);
-
-				//imshow("augment-before", mm);
-				GlobalAugmented::augment(mm, -1, 1);
-				//imshow("augment-after", mm);
-				split(mm, ms); 
-				//waitKey(0);
-				for (int f = 0; f < ms.size(); ++f){
-					CV_Assert((Dtype*)ms[f].data == top_data + imw * imh * f + item_id * imw * imh * this->transformed_data_.channels());
-				}
-			}
-#if 0
-			if (imw == 368 && imh == 368 && this->transformed_data_.channels() == 3){
-				Mat ms[3];
-				for (int m = 0; m < 3; ++m){
-					Dtype* ptr = top_data + imw * imh * m + item_id * imw * imh * 3;
-					ms[m] = Mat(imh, imw, CV_32F, ptr);
-				}
-				Mat mm;
-				merge(ms, 3, mm);
-				aug(mm);
-				split(mm, ms);
-				CV_Assert((Dtype*)ms[0].data == top_data + imw * imh * 0 + item_id * imw * imh * 3);
-				CV_Assert((Dtype*)ms[1].data == top_data + imw * imh * 1 + item_id * imw * imh * 3);
-				CV_Assert((Dtype*)ms[2].data == top_data + imw * imh * 2 + item_id * imw * imh * 3);
-			}
-#endif
 
 			// Copy label.
 			if (this->output_labels_) {

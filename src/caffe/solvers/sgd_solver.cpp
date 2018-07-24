@@ -254,7 +254,7 @@ void SGDSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
               history_[param_id]->mutable_cpu_data());
     caffe_copy(net_params[param_id]->count(),
         history_[param_id]->cpu_data(),
-        net_params[param_id]->mutable_cpu_diff(), 0);
+        net_params[param_id]->mutable_cpu_diff());
     break;
   }
   case Caffe::GPU: {
@@ -302,7 +302,7 @@ void SGDSolver<Dtype>::SnapshotSolverStateToBinaryProto(
     BlobProto* history_blob = state.add_history();
     history_[i]->ToProto(history_blob);
   }
-  string snapshot_filename = Solver<Dtype>::SnapshotFilename(".solverstate");
+  string snapshot_filename = Solver<Dtype>::SnapshotFilename(model_filename, ".solverstate");
   LOG(INFO)
     << "Snapshotting solver state to binary proto file " << snapshot_filename;
   WriteProtoToBinaryFile(state, snapshot_filename.c_str());
@@ -346,8 +346,11 @@ void SGDSolver<Dtype>::RestoreSolverStateFromBinaryProto(
   ReadProtoFromBinaryFile(state_file, &state);
   this->iter_ = state.iter();
   if (state.has_learned_net()) {
+
+	int pp = state_file.rfind('.');
+	string learned_net_path = (pp == -1 ? state_file : state_file.substr(0, pp)) + ".caffemodel";
     NetParameter net_param;
-    ReadNetParamsFromBinaryFileOrDie(state.learned_net().c_str(), &net_param);
+	ReadNetParamsFromBinaryFileOrDie(learned_net_path.c_str(), &net_param);
     this->net_->CopyTrainedLayersFrom(net_param);
   }
   this->current_step_ = state.current_step();

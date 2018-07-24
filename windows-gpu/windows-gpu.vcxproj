@@ -1,20 +1,36 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="DebugDLL|Win32">
-      <Configuration>DebugDLL</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="DebugDLL|x64">
       <Configuration>DebugDLL</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="ReleaseDLL|Win32">
-      <Configuration>ReleaseDLL</Configuration>
-      <Platform>Win32</Platform>
+    <ProjectConfiguration Include="DPython|x64">
+      <Configuration>DPython</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DWithProtobuf|x64">
+      <Configuration>DWithProtobuf</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="ReleaseDLL|x64">
       <Configuration>ReleaseDLL</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RPython2.7|x64">
+      <Configuration>RPython2.7</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RPython|x64">
+      <Configuration>RPython</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RWithProtobuf|x64">
+      <Configuration>RWithProtobuf</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RWithOutCUDNN|x64">
+      <Configuration>RWithOutCUDNN</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -29,7 +45,6 @@
     <ClInclude Include="..\include\caffe\blob.hpp" />
     <ClInclude Include="..\include\caffe\caffe.hpp" />
     <ClInclude Include="..\include\caffe\cc\core\cc.h" />
-    <ClInclude Include="..\include\caffe\cc\core\cc_c.h" />
     <ClInclude Include="..\include\caffe\cc\core\cc_utils.h" />
     <ClInclude Include="..\include\caffe\cc\import\import-caffe-staticlib.h" />
     <ClInclude Include="..\include\caffe\cc\import\import-cuda-lib.h" />
@@ -139,7 +154,6 @@
     <ClInclude Include="..\include\caffe\layers\softmax_loss_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\split_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\spp_layer.hpp" />
-    <ClInclude Include="..\include\caffe\layers\ssd_data_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\st_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\st_loss_layer.hpp" />
     <ClInclude Include="..\include\caffe\layers\tanh_layer.hpp" />
@@ -171,6 +185,7 @@
     <ClInclude Include="..\include\caffe\util\io.hpp" />
     <ClInclude Include="..\include\caffe\util\math_functions.hpp" />
     <ClInclude Include="..\include\caffe\util\mkl_alternate.hpp" />
+    <ClInclude Include="..\include\caffe\util\model_crypt.h" />
     <ClInclude Include="..\include\caffe\util\mtcnn_data_gen.hpp" />
     <ClInclude Include="..\include\caffe\util\pa_file.h" />
     <ClInclude Include="..\include\caffe\util\rng.hpp" />
@@ -183,7 +198,6 @@
     <ClCompile Include="..\src\caffe\3rdparty\ctc_entrypoint.cpp" />
     <ClCompile Include="..\src\caffe\blob.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_blob.cpp" />
-    <ClCompile Include="..\src\caffe\cc\core\cc_c.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_core.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_layer.cpp" />
     <ClCompile Include="..\src\caffe\cc\core\cc_map.cpp" />
@@ -258,8 +272,6 @@
     <ClCompile Include="..\src\caffe\layers\lstm_LSTM_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\lstm_LSTM_unit_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\memory_data_layer.cpp" />
-    <ClCompile Include="..\src\caffe\layers\mtcnn_data_layer.cpp" />
-    <ClCompile Include="..\src\caffe\layers\mtcnn_euclidean_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\multibox_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\multinomial_logistic_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\mvn_layer.cpp" />
@@ -290,7 +302,6 @@
     <ClCompile Include="..\src\caffe\layers\spatial_product_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\split_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\spp_layer.cpp" />
-    <ClCompile Include="..\src\caffe\layers\ssd_data_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\st_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\st_loss_layer.cpp" />
     <ClCompile Include="..\src\caffe\layers\tanh_layer.cpp" />
@@ -316,7 +327,6 @@
     <ClCompile Include="..\src\caffe\util\benchmark.cpp" />
     <ClCompile Include="..\src\caffe\util\blocking_queue.cpp" />
     <ClCompile Include="..\src\caffe\util\cudnn.cpp" />
-    <ClCompile Include="..\src\caffe\util\data_augmented.cpp" />
     <ClCompile Include="..\src\caffe\util\db.cpp" />
     <ClCompile Include="..\src\caffe\util\db_leveldb.cpp" />
     <ClCompile Include="..\src\caffe\util\db_lmdb.cpp" />
@@ -328,13 +338,12 @@
     <ClCompile Include="..\src\caffe\util\interp.cpp" />
     <ClCompile Include="..\src\caffe\util\io.cpp" />
     <ClCompile Include="..\src\caffe\util\math_functions.cpp" />
-    <ClCompile Include="..\src\caffe\util\mtcnn_data_gen.cpp" />
+    <ClCompile Include="..\src\caffe\util\model_crypt.cpp" />
     <ClCompile Include="..\src\caffe\util\pa_draw.cpp" />
     <ClCompile Include="..\src\caffe\util\pa_file.cpp" />
     <ClCompile Include="..\src\caffe\util\permutohedral.cpp" />
     <ClCompile Include="..\src\caffe\util\sampler.cpp" />
     <ClCompile Include="..\src\caffe\util\signal_handler.cpp" />
-    <ClCompile Include="..\src\caffe\util\ssd_augmented.cpp" />
     <ClCompile Include="..\src\caffe\util\upgrade_proto.cpp" />
     <ClCompile Include="..\src\caffe\util\xml\tinystr.cpp" />
     <ClCompile Include="..\src\caffe\util\xml\tinyxml.cpp" />
@@ -386,8 +395,6 @@
     <CudaCompile Include="..\src\caffe\layers\lstm_junhyuk_layer.cu" />
     <CudaCompile Include="..\src\caffe\layers\lstm_layer.cu" />
     <CudaCompile Include="..\src\caffe\layers\lstm_LSTM_unit_layer.cu" />
-    <CudaCompile Include="..\src\caffe\layers\mtcnn_data_layer.cu" />
-    <CudaCompile Include="..\src\caffe\layers\mtcnn_euclidean_loss_layer.cu" />
     <CudaCompile Include="..\src\caffe\layers\mvn_layer.cu" />
     <CudaCompile Include="..\src\caffe\layers\normalize_layer.cu" />
     <CudaCompile Include="..\src\caffe\layers\permute_layer.cu" />
@@ -428,16 +435,11 @@
     <CudaCompile Include="..\src\caffe\util\interp.cu" />
     <CudaCompile Include="..\src\caffe\util\math_functions.cu" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="def.def" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C140902D-9AB4-4C4E-8684-9077C476CDB7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>windows-cpu</RootNamespace>
     <ProjectName>libcaffe</ProjectName>
-    <CudaToolkitCustomDir>
-    </CudaToolkitCustomDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|x64'" Label="Configuration">
@@ -447,7 +449,14 @@
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DPython|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DWithProtobuf|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
@@ -462,7 +471,31 @@
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RPython|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RPython2.7|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RWithProtobuf|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RWithOutCUDNN|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
@@ -477,69 +510,91 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DPython|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DWithProtobuf|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='RPython|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='RPython2.7|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='RWithProtobuf|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='RWithOutCUDNN|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python2.7;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python3.6;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;../3rd/staticlib/python3.6/$(Platform)/;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <IntDir>../Build/gpu_cuda8.0/outobj/$(ProjectName)/$(Configuration)/$(Platform)/</IntDir>
     <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/</OutDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DPython|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>F:\research\1.CCDL\CCDL-4.0\github\CC4.0\3rd\include\cuda-win32;../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python2.7;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>F:\research\1.CCDL\CCDL-4.0\github\CC4.0\3rd\staticlib\cuda-win32;../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
+    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python3.6;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;../3rd/staticlib/python3.6/$(Platform)/;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IntDir>../Build/gpu_cuda8.0/outobj/$(ProjectName)/$(Configuration)/$(Platform)/</IntDir>
+    <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/</OutDir>
+    <TargetName>$(ProjectName)-with-pythond</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DWithProtobuf|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python3.6;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;../3rd/staticlib/python3.6/$(Platform)/;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <IntDir>../Build/gpu_cuda8.0/outobj/$(ProjectName)/$(Configuration)/$(Platform)/</IntDir>
     <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/</OutDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python2.7;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python3.6;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;../3rd/staticlib/python3.6/$(Platform)/;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <IntDir>../Build/gpu_cuda8.0/outobj/$(ProjectName)/$(Configuration)/$(Platform)/</IntDir>
-    <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/</OutDir>
+    <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RPython|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>F:\research\1.CCDL\CCDL-4.0\github\CC4.0\3rd\include\cuda-win32;../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python2.7;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>F:\research\1.CCDL\CCDL-4.0\github\CC4.0\3rd\staticlib\cuda-win32;../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
+    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python3.6;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;../3rd/staticlib/python3.6/$(Platform)/;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <IntDir>../Build/gpu_cuda8.0/outobj/$(ProjectName)/$(Configuration)/$(Platform)/</IntDir>
-    <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/</OutDir>
+    <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)</OutDir>
+    <TargetName>$(ProjectName)-with-python</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RPython2.7|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python2.7;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;../3rd/staticlib/python2.7/$(Platform)/;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IntDir>../Build/gpu_cuda8.0/outobj/$(ProjectName)/$(Configuration)/$(Platform)/</IntDir>
+    <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)</OutDir>
+    <TargetName>$(ProjectName)-with-python</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RWithProtobuf|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python3.6;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;../3rd/staticlib/python3.6/$(Platform)/;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IntDir>../Build/gpu_cuda8.0/outobj/$(ProjectName)/$(Configuration)/$(Platform)/</IntDir>
+    <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RWithOutCUDNN|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>../include;../3rd/include/protobuf;../3rd/include/;../3rd/include/openblas0.2.14.1;../include\caffe\proto;../3rd/include/opencv2.4.10;../3rd/include/opencv2.4.10/opencv;../3rd/include/opencv2.4.10/opencv2;../3rd/include/python3.6;../3rd/include/cudnn-5.0/;../include/caffe/cc/import;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>../3rd/staticlib/boost/$(Platform)/;../3rd/staticlib/gflags/$(Platform)/;../3rd/staticlib/glog/$(Platform)/;../3rd/staticlib/protobuf/$(Platform)/;../3rd/staticlib/openblas/$(Platform)/;../3rd/staticlib/opencv2.4.10/$(Platform)/vc$(PlatformToolsetVersion)/staticlib;../3rd/staticlib/lmdb/$(Platform)/;../Build/gpu_cuda8.0/$(Configuration)/$(Platform)/;../3rd/staticlib/cudnn-5.1x64win10;../3rd/staticlib/python3.6/$(Platform)/;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IntDir>../Build/gpu_cuda8.0/outobj/$(ProjectName)/$(Configuration)/$(Platform)/</IntDir>
+    <OutDir>../Build/gpu_cuda8.0/$(Configuration)/$(Platform)</OutDir>
+    <TargetName>$(ProjectName)-without-cudnn</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|x64'">
-    <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>EXPORT_CC_DLL;USE_LMDB;USE_CUDNN;CCTrainControl;DEBUG;USE_OPENCV;WIN32;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>false</SDLCheck>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <PostBuildEvent>
-      <Command>copy ..\3rd\staticlib\openblas\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\
-copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\</Command>
-    </PostBuildEvent>
-    <CudaCompile>
-      <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_50,sm_50;compute_50,compute_50</CodeGeneration>
-      <TargetMachinePlatform>64</TargetMachinePlatform>
-    </CudaCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|Win32'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
@@ -559,6 +614,53 @@ copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuratio
     </PostBuildEvent>
     <CudaCompile>
       <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_50,sm_50;compute_50,compute_50</CodeGeneration>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DPython|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>EXPORT_CC_DLL;USE_LMDB;USE_CUDNN;USE_CC_PYTHON;CCTrainControl;DEBUG;USE_OPENCV;WIN32;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy ..\3rd\staticlib\openblas\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\
+copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\</Command>
+    </PostBuildEvent>
+    <CudaCompile>
+      <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_50,sm_50;compute_50,compute_50</CodeGeneration>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DWithProtobuf|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>EXPORT_CC_DLL;USE_PROTOBUF;USE_LMDB;USE_CUDNN;CCTrainControl;DEBUG;USE_OPENCV;WIN32;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy ..\3rd\staticlib\openblas\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\
+copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\</Command>
+    </PostBuildEvent>
+    <CudaCompile>
+      <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_50,sm_50;compute_50,compute_50</CodeGeneration>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|x64'">
@@ -571,6 +673,7 @@ copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuratio
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>USE_LMDB;USE_CUDNN;EXPORT_CC_DLL;NDEBUG;USE_OPENCV;WIN32;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -590,7 +693,97 @@ copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuratio
       <TargetMachinePlatform>64</TargetMachinePlatform>
     </CudaCompile>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RPython|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>USE_LMDB;USE_CUDNN;EXPORT_CC_DLL;NDEBUG;USE_OPENCV;USE_CC_PYTHON;WIN32;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>shlwapi.lib;gflags_static.lib;libprotobuf.lib;libglog_static.lib;libopenblas.dll.a</AdditionalDependencies>
+      <MinimumRequiredVersion>5.04</MinimumRequiredVersion>
+      <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy ..\3rd\staticlib\openblas\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\
+copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\</Command>
+    </PostBuildEvent>
+    <CudaCompile>
+      <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_50,sm_50;compute_50,compute_50</CodeGeneration>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RPython2.7|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>USE_LMDB;USE_CUDNN;EXPORT_CC_DLL;NDEBUG;USE_OPENCV;USE_CC_PYTHON;WIN32;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>shlwapi.lib;gflags_static.lib;libprotobuf.lib;libglog_static.lib;libopenblas.dll.a</AdditionalDependencies>
+      <MinimumRequiredVersion>5.04</MinimumRequiredVersion>
+      <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy ..\3rd\staticlib\openblas\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\
+copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\</Command>
+    </PostBuildEvent>
+    <CudaCompile>
+      <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_50,sm_50;compute_50,compute_50</CodeGeneration>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RWithProtobuf|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>USE_LMDB;USE_PROTOBUF;USE_CUDNN;EXPORT_CC_DLL;NDEBUG;USE_OPENCV;WIN32;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>shlwapi.lib;gflags_static.lib;libprotobuf.lib;libglog_static.lib;libopenblas.dll.a</AdditionalDependencies>
+      <MinimumRequiredVersion>5.04</MinimumRequiredVersion>
+      <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy ..\3rd\staticlib\openblas\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\
+copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\</Command>
+    </PostBuildEvent>
+    <CudaCompile>
+      <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_50,sm_50;compute_50,compute_50</CodeGeneration>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RWithOutCUDNN|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
@@ -610,7 +803,6 @@ copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuratio
       <AdditionalDependencies>shlwapi.lib;gflags_static.lib;libprotobuf.lib;libglog_static.lib;libopenblas.dll.a</AdditionalDependencies>
       <MinimumRequiredVersion>5.04</MinimumRequiredVersion>
       <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
-      <ModuleDefinitionFile>def.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
       <Command>copy ..\3rd\staticlib\openblas\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuration)\$(Platform)\
@@ -618,6 +810,7 @@ copy ..\3rd\staticlib\lmdb\$(Platform)\*.dll ..\Build\gpu_cuda8.0\$(Configuratio
     </PostBuildEvent>
     <CudaCompile>
       <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_50,sm_50;compute_50,compute_50</CodeGeneration>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
     </CudaCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

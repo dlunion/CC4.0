@@ -4,7 +4,11 @@
     <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugDLL|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DPython|x64'">
+    <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DWithProtobuf|x64'">
     <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
@@ -12,7 +16,19 @@
     <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDLL|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RPython|x64'">
+    <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RPython2.7|x64'">
+    <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RWithProtobuf|x64'">
+    <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RWithOutCUDNN|x64'">
     <LocalDebuggerWorkingDirectory>../Build/gpu_cuda$(CC_CUDA_VERSION)/$(Configuration)/$(Platform)/</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>

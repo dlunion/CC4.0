@@ -1,6 +1,22 @@
 
-#include "caffe/net.hpp"
 #include "caffe/cc/core/cc.h"
+#include "caffe/caffe.hpp"
+#include "caffe/common.hpp"
+#include <math.h>
+#include <iostream>
+#include "caffe/net.hpp"
+#include "caffe/util/signal_handler.h"
+#include "caffe/cc/core/cc.h"
+
+#ifdef USE_CC_PYTHON
+#include <memory>
+
+#undef _DEBUG
+#include <Python.h>
+#endif
+
+using namespace std;
+using namespace cv;
 
 namespace cc{
 
@@ -131,4 +147,20 @@ namespace cc{
 		caffe::Net<float>* net = new caffe::Net<float>(param, 0);
 		return net->ccNet();
 	}
+
+#ifdef USE_CC_PYTHON
+	CCAPI Net* CCCALL loadNetFromPython(const char* pythonfile, const char* func, int phase){
+		Net* net_ptr = 0;
+		{
+			CCPython pp;
+			bool ok = pp.load(pythonfile);
+			CHECK(ok) << pp.last_error();
+			if (!ok) return 0;
+
+			string prototxt = pp.callstringFunction(func);
+			net_ptr = loadNetFromPrototxtString(prototxt.c_str(), prototxt.size(), phase);
+		}
+		return net_ptr;
+	}
+#endif
 }

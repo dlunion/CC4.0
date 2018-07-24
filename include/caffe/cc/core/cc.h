@@ -37,6 +37,7 @@ namespace cc{
 	public:
 		operator char*(){ return get(); }
 		operator const char*(){ return get(); }
+		bool operator==(const char* str){ return strcmp(get(), str) == 0; }
 		CCString& operator=(const char* str){ set(str); return *this; }
 		CCString& operator=(char* str){ set(str); return *this; }
 		CCString& operator=(const CCString& str){ set(str.get(), str.len()); return *this; }
@@ -171,6 +172,28 @@ namespace cc{
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//轻量级的Blob
+	class Blob;
+	struct CCAPI BlobData{
+		float* list;
+		int num;
+		int channels;
+		int height;
+		int width;
+		int capacity_count;		//保留空间的元素个数长度，字节数请 * sizeof(float)
+
+		BlobData();
+		virtual ~BlobData();
+		bool empty() const;
+		int count() const;
+		void reshape(int num, int channels, int height, int width);
+		void reshapeLike(const BlobData* other);
+		void copyFrom(const BlobData* other);
+		void copyFrom(const Blob* other);
+		void reshapeLike(const Blob* other);
+		void release();
+	};
+
 	class CCAPI Blob{
 	public:
 		void setNative(void* native);
@@ -200,6 +223,7 @@ namespace cc{
 		void Reshape(int numShape, int* shapeDims);
 		void ReshapeLike(const Blob& other);
 		void copyFrom(const Blob& other, bool copyDiff = false, bool reshape = false);
+		void copyFrom(const BlobData& other);
 		void setDataRGB(int numIndex, const Mat& data);
 		CCString shapeString();
 
@@ -219,6 +243,12 @@ namespace cc{
 		bool hasParam(const char* path);
 		CCString name();
 		MessageHandle* param();
+		int getNumBottom();
+		int getNumTop();
+		CCString bottomName(int index);
+		CCString topName(int index);
+		Blob* paramBlob(int index);
+		int getNumParamBlob();
 
 #ifdef USE_PROTOBUF
 		caffe::LayerParameter& layer_param();
@@ -273,8 +303,8 @@ namespace cc{
 		void* getNative();
 		int iter();
 		float smooth_loss();
-		void Restore(const char* resume_file);
-		void Snapshot();
+		void Restore(const char* solvestate_file);
+		void Snapshot(const char* caffemodel_savepath = 0, bool save_solver_state = true);
 		int max_iter();
 		void Solve();
 		void installActionSignalOperator();
@@ -300,8 +330,31 @@ namespace cc{
 	CCAPI void CCCALL releaseBlob(Blob* blob);
 	CCAPI void CCCALL releaseSolver(Solver* solver);
 	CCAPI void CCCALL releaseNet(Net* net);
-	CCAPI Solver* CCCALL loadSolverFromPrototxt(const char* solver_prototxt);
-	CCAPI Solver* CCCALL loadSolverFromPrototxtString(const char* solver_prototxt_string);
+	CCAPI Solver* CCCALL loadSolverFromPrototxt(const char* solver_prototxt, const char* netstring = 0);
+	CCAPI Solver* CCCALL loadSolverFromPrototxtString(const char* solver_prototxt_string, const char* netstring = 0);
+
+#ifdef USE_CC_PYTHON
+	class CCAPI CCPython{
+	public:
+		CCPython();
+		virtual ~CCPython();
+		bool load(const char* pyfile);
+		CCString callstringFunction(const CCString& name, CCString& errmsg = CCString());
+		CCString train_ptototxt();
+		CCString deploy_prototxt();
+		CCString solver();
+		CCString last_error();
+
+	private:
+		void* module_;
+		CCString lasterror_;
+	};
+
+	CCAPI Solver* CCCALL loadSolverFromPython(const char* pythonfile);
+
+	//phase指定加载train_prototxt还是deploy_prototxt
+	CCAPI Net* CCCALL loadNetFromPython(const char* pythonfile, const char* func="deploy_prototxt", int phase = PhaseTest);
+#endif
 
 #ifdef USE_PROTOBUF
 	CCAPI Solver* CCCALL newSolverFromProto(const caffe::SolverParameter* solver_param);
@@ -325,6 +378,21 @@ namespace cc{
 	CCAPI void CCCALL WriteProtoToTextFile(const google::protobuf::Message& proto, const char* filename);
 	CCAPI void CCCALL WriteProtoToBinaryFile(const google::protobuf::Message& proto, const char* filename);
 #endif
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	class CCAPI LMDB{
+	public:
+		LMDB(const char* folder);
+		void put(const char* key, const void* data, int length);
+		void putAnnotatedDatum(const char* key, void* datum);
+		void putDatum(const char* key, void* datum);
+		void release();
+		virtual ~LMDB();
+
+	private:
+		void* native_;
+	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	class CCAPI AbstractCustomLayer{
@@ -379,39 +447,44 @@ namespace cc{
 
 	class CCAPI DataLayer : public AbstractCustomLayer{
 	public:
-		DataLayer();
+		DataLayer(int batchCacheSize = 3, int watcherSize = 1);
 		virtual ~DataLayer();
 
-		virtual int getBatchCacheSize();
 		virtual void loadBatch(Blob** top, int numTop) = 0;
 		virtual void setup(const char* name, const char* type, const char* param_str, int phase, Blob** bottom, int numBottom, Blob** top, int numTop);
 		virtual void forward(Blob** bottom, int numBottom, Blob** top, int numTop);
-		virtual void reshape(Blob** bottom, int numBottom, Blob** top, int numTop){}
+		virtual void reshape(Blob** bottom, int numBottom, Blob** top, int numTop);
 		void stopBatchLoader();
+		int getWatcherIndex();
 		virtual int waitForDataTime();
+		void setPrintWaitData(bool wait);
 
 	private:
 		void setupBatch(Blob** top, int numTop);
-		static void watcher(DataLayer* ptr);
+		static void watcher(DataLayer* ptr, int ind);
 		void startWatcher();
 		void stopWatcher();
 		void pullBatch(Blob** top, int numTop);
 
 	private:
 		volatile bool keep_run_watcher_;
-		void* hsem_;
-		bool* batch_flags_;
-		Blob*** batch_;
+		void** hsem_;
+		bool** batch_flags_;
+		Blob**** batch_;					//batch_
 		int numTop_;
 		int cacheBatchSize_;
+		int watcherSize_;
+		void* watcher_map_;
+		bool print_waitdata_;
 	};
 
 	class CCAPI SSDDataLayer : public DataLayer{
 	public:
-		SSDDataLayer();
+		SSDDataLayer(int batchCacheSize = 3, int watcherSize = 1);
 		virtual ~SSDDataLayer();
 
 		virtual int getBatchCacheSize();
+		virtual int getWatcherSize();
 		virtual void loadBatch(Blob** top, int numTop);
 		virtual void setup(const char* name, const char* type, const char* param_str, int phase, Blob** bottom, int numBottom, Blob** top, int numTop);
 		virtual void* getAnnDatum() = 0;
@@ -434,6 +507,9 @@ namespace cc{
 	CCAPI void* CCCALL loadLabelMap(const char* prototxt);
 	CCAPI void CCCALL releaseLabelMap(void* labelmap);
 	CCAPI void CCCALL releaseAnnDatum(void* datum);
+
+	CCAPI void* CCCALL loadDatum(const char* path, int label);
+	CCAPI void CCCALL releaseDatum(void* datum);
 
 
 	/////////////////////////////////////////////////////////////////////////////

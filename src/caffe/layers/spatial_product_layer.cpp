@@ -68,7 +68,7 @@ void SpatialProductLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   if (propagate_down[0]) {
     const Dtype* top_diff = top[0]->cpu_diff();
     Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
-    caffe_copy(count, top_diff, bottom_diff, 0);
+    caffe_copy(count, top_diff, bottom_diff);
     for (int n = 0; n < num_; ++n) {
       const Dtype* scale_data = bottom[1]->cpu_data_at(n);
       for (int c = 0; c < channels_; ++c) {

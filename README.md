@@ -1,5 +1,5 @@
 # CC4.0
-Caffe for CC4.0-Windows，简单的Caffe C++接口，方便简单而更深入的研究深度学习 a
+Caffe for CC4.0-Windows，简单的Caffe C++接口，方便简单而更深入的研究深度学习
 
 # 特性
 1.只需要一个头文件和一个依赖项libcaffe.lib<br/>
@@ -9,7 +9,6 @@ Caffe for CC4.0-Windows，简单的Caffe C++接口，方便简单而更深入的
 5.支持LSTM不定长OCR（有案例），支持SSD更轻易的训练起来<br/>
 6.有了4.0的支持，很轻易的能够实现任何新的网络结构<br/>
 7.可以允许通过自定义层，训练中查看训练效果，更加容易理解CNN在干嘛，学的效果怎么样，不再盲目了<br/>
-8.接口查看[cc.h](https://github.com/dlunion/CC4.0/blob/master/include/caffe/cc/core/cc.h)和[cc_utils.h](https://github.com/dlunion/CC4.0/blob/master/include/caffe/cc/core/cc_utils.h)
 
 # 编译
 编译环境：VS2013<br/>
@@ -21,8 +20,7 @@ CUDNN版本：5.0<br/>
 
 # 下载编译好的库文件和案例等数据
 推荐使用VS2013，下载后压缩包已经配置好环境和带好了OpenCV2.4.10静态库<br/>
-<del>[CC4.0.3.rar-百度网盘](https://pan.baidu.com/s/1OQDmxWwVpVohER2YMqGbZQ)</del>，里面的依赖可以用，但是头文件和libcaffe.dll不可用（因为有几个bug），等待重新编译并上传<br/>
-Win32-GPU编译，请下载[CUDA6.5 ToolKit](http://www.zifuture.com/fs/18.cc4.0/CUDAToolkit.rar)<br/>
+<del>[CC4.0.3.rar-百度网盘](https://pan.baidu.com/s/1OQDmxWwVpVohER2YMqGbZQ)</del>，里面的依赖可以用，但是头文件和libcaffe.dll不可用（因为有几个bug），等待重新编译并上传
 
 # 案例
 非常容易在C++里面实现自己的datalayer、losslayer等，自定义数据的输入等

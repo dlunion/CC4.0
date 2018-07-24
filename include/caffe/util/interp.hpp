@@ -3,7 +3,10 @@
 #ifndef CAFFE_UTIL_INTERP_H_
 #define CAFFE_UTIL_INTERP_H_
 
+#ifndef CPU_ONLY
 #include <cublas_v2.h>
+#endif
+
 #include "caffe/proto/caffe.pb.h"
 
 namespace caffe {

@@ -45,6 +45,36 @@ namespace cc{
 		return getMessageValue((MessageHandle)&ptr->layer_param(), path, val);
 	}
 
+	int Layer::getNumBottom(){
+		return ptr->layer_param_.bottom_size();
+	}
+
+	int Layer::getNumTop(){
+		return ptr->layer_param_.top_size();
+	}
+
+	CCString Layer::bottomName(int index){
+		if (index >= 0 && index < getNumBottom())
+			return ptr->layer_param_.bottom(index).c_str();
+		else
+			return "";
+	}
+
+	CCString Layer::topName(int index){
+		if (index >= 0 && index < getNumTop())
+			return ptr->layer_param_.top(index).c_str();
+		else
+			return "";
+	}
+
+	Blob* Layer::paramBlob(int index){
+		return ptr->blobs_[index]->ccBlob();
+	}
+
+	int Layer::getNumParamBlob(){
+		return ptr->blobs_.size();
+	}
+
 	bool Layer::hasParam(const char* path){
 		Value val;
 		return getMessageValue((MessageHandle)&ptr->layer_param(), path, val);

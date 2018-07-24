@@ -11,7 +11,6 @@
 #include "caffe/layers/annotated_data_layer.hpp"
 #include "caffe/util/benchmark.hpp"
 #include "caffe/util/sampler.hpp"
-#include "caffe/util/ssd_augmented.hpp"
 #include <highgui.h>
 
 using namespace cv;

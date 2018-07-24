@@ -25,7 +25,7 @@ void RecurrentLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       DCHECK_EQ(count, recur_output_blobs_[i]->count());
       const Dtype* timestep_T_data = recur_output_blobs_[i]->gpu_data();
       Dtype* timestep_0_data = recur_input_blobs_[i]->mutable_gpu_data();
-      caffe_copy(count, timestep_T_data, timestep_0_data, 3);
+      caffe_copy(count, timestep_T_data, timestep_0_data);
     }
   }
 

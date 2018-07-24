@@ -92,7 +92,7 @@ void BatchNormLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   int spatial_dim = bottom[0]->count()/(bottom[0]->shape(0)*channels_);
 
   if (bottom[0] != top[0]) {
-    caffe_copy(bottom[0]->count(), bottom_data, top_data, 0);
+    caffe_copy(bottom[0]->count(), bottom_data, top_data);
   }
 
   if (use_global_stats_) {
@@ -162,7 +162,7 @@ void BatchNormLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   // TODO(cdoersch): The caching is only needed because later in-place layers
   //                 might clobber the data.  Can we skip this if they won't?
   caffe_copy(x_norm_.count(), top_data,
-      x_norm_.mutable_cpu_data(), 0);
+      x_norm_.mutable_cpu_data());
 }
 
 template <typename Dtype>
@@ -173,7 +173,7 @@ void BatchNormLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   if (bottom[0] != top[0]) {
     top_diff = top[0]->cpu_diff();
   } else {
-    caffe_copy(x_norm_.count(), top[0]->cpu_diff(), x_norm_.mutable_cpu_diff(), 0);
+    caffe_copy(x_norm_.count(), top[0]->cpu_diff(), x_norm_.mutable_cpu_diff());
     top_diff = x_norm_.cpu_diff();
   }
   Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();

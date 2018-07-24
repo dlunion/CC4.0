@@ -1,240 +1,132 @@
 #include "caffe/util/pa_file.h"
 #include <stdio.h>
-
-#ifdef WIN32
 #include <windows.h>
+#include <stack>
+#include <string>
 #include <Shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
 
-#else
-#include <sys/io.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#endif
-
-#include <stack>
-
-#ifdef WIN32
-#include <string>
-#else
-#include <string.h>
-#endif
-
 using namespace std;
+
+bool paWriteToFile(const char* file, const void* data, const size_t len)
+{
+	FILE* fn = fopen(file, "wb");
+	bool ret_value = false;
+
+	if (fn != 0)
+	{
+		fwrite(data, 1, len, fn);
+		fclose(fn);
+		ret_value = true;
+	}
+
+	return ret_value;
+}
 
 int paGetFileSize(const char* file)
 {
-	FILE *fp = fopen(file, "r");
-	if (!fp) return -1;
-	fseek(fp, 0L, SEEK_END);
-	int size = ftell(fp);
-	fclose(fp);
-	return size;
+	WIN32_FIND_DATAA find_data;
+	HANDLE hFind = FindFirstFileA(file, &find_data);
+	if (hFind == INVALID_HANDLE_VALUE)
+		return 0;
+
+	FindClose(hFind);
+	return find_data.nFileSizeLow;
 }
 
-bool caseEqual(char a, char b, bool igrnoe_case){
-	if (igrnoe_case){
-		a = a > 'a' && a < 'z' ? a - 'a' + 'A' : a;
-		b = b > 'a' && b < 'z' ? b - 'a' + 'A' : b;
-	}
-	return a == b;
+ui64 paGetFileSize64(const char* file)
+{
+	WIN32_FIND_DATAA find_data;
+	HANDLE hFind = FindFirstFileA(file, &find_data);
+	if (hFind == INVALID_HANDLE_VALUE)
+		return 0;
+
+	FindClose(hFind);
+	return (ui64)find_data.nFileSizeLow | ((ui64)find_data.nFileSizeHigh << 32);
 }
 
-bool genMatchBody(const char* str, const char* matcher, bool igrnoe_case = true){
-	//   abcdefg.pnga          *.png      > false
-	//   abcdefg.png           *.png      > true
-	//   abcdefg.png          a?cdefg.png > true
+bool paReadAt(const char* file, void* buffer, size_t len_of_buffer, size_t* len_of_read /*= 0*/)
+{
+	if(len_of_read != 0)
+		*len_of_read = 0;
 
-	if (!matcher || !*matcher || !str || !*str) return false;
+	if(buffer == 0 || file == 0 || len_of_buffer == 0)
+		return false;
 
-	const char* ptr_matcher = matcher;
-	while (*str){
-		if (*ptr_matcher == '?'){
-			ptr_matcher++;
-		}
-		else if (*ptr_matcher == '*'){
-			if (*(ptr_matcher + 1)){
-				if (genMatchBody(str, ptr_matcher + 1, igrnoe_case))
-					return true;
-			}
-			else{
-				return true;
-			}
-		}
-		else if (!caseEqual(*ptr_matcher, *str, igrnoe_case)){
-			return false;
-		}
-		else{
-			if (*ptr_matcher)
-				ptr_matcher++;
-			else
-				return false;
-		}
-		str++;
+	size_t sizeOfFile = paGetFileSize(file);
+	size_t sizeOfRead = min(sizeOfFile, len_of_buffer);
+
+	if(sizeOfRead == 0)
+		return false;
+
+	FILE* f = fopen(file, "rb");
+	if(f == 0)
+		return false;
+
+	size_t alreadyRead = fread(buffer, 1, sizeOfRead, f);
+	if(sizeOfRead != alreadyRead)
+	{
+		fclose(f);
+		return false;
 	}
 
-	while (*ptr_matcher){
-		if (*ptr_matcher != '*')
-			return false;
-		ptr_matcher++;
-	}
+	if(len_of_read != 0)
+		*len_of_read = alreadyRead;
+
+	fclose(f);
 	return true;
 }
 
-bool genMatch(const char* str, const char* matcher, bool igrnoe_case = true){
-	//   abcdefg.pnga          *.png      > false
-	//   abcdefg.png           *.png      > true
-	//   abcdefg.png          a?cdefg.png > true
-
-	if (!matcher || !*matcher || !str || !*str) return false;
-
-	char filter[500];
-	strcpy(filter, matcher);
-
-	vector<const char*> arr;
-	char* ptr_str = filter;
-	char* ptr_prev_str = ptr_str;
-	while (*ptr_str){
-		if (*ptr_str == ';'){
-			*ptr_str = 0;
-			arr.push_back(ptr_prev_str);
-			ptr_prev_str = ptr_str + 1;
-		}
-		ptr_str++;
+void freeReadFile(unsigned char** pptr){
+	if (pptr){
+		unsigned char* ptr = *pptr;
+		if (ptr)
+			delete[] ptr;
+		*pptr = 0;
 	}
-
-	if (*ptr_prev_str)
-		arr.push_back(ptr_prev_str);
-
-	for (int i = 0; i < arr.size(); ++i){
-		if (genMatchBody(str, arr[i], igrnoe_case))
-			return true;
-	}
-	return false;
 }
 
-#ifdef WIN32
-
-#if 0
-int paFindFilesShort(const std::string& path, PaVfiles& out, const char* filter /*= "*"*/, bool inc_sub_dirs /*= true*/, bool clear_out /*= true*/,
-	PaFindFileType type /*= HpFindFileType_File*/, unsigned int nFilePerDir /*= 0*/)
+unsigned char* paReadFile(const char* file, size_t* out_of_file_size /*= 0*/)
 {
-	char real_path[260];
-	size_t length = path.length();
+	if (out_of_file_size != 0)
+		*out_of_file_size = 0;
 
-	if (clear_out)
-		out.clear();
+	size_t size = paGetFileSize(file);
+	if (size == 0)
+		return 0;
 
-	strcpy(real_path, path.c_str());
-	if (real_path[length - 1] != '\\' && real_path[length - 1] != '/')
-		strcat(real_path, "\\");
+	if (out_of_file_size != 0)
+		*out_of_file_size = size;
 
-	struct _finddata_t fileinfo;
-	long handle;
-	stack<string> ps;
-	size_t nOldCount = out.size();
-	ps.push(real_path);
+	FILE* fn = fopen(file, "rb");
+	unsigned char* data = 0;
 
-	while (!ps.empty())
+	if (fn != 0)
 	{
-		unsigned int nAlreadyCount = 0;
-		string search_path = ps.top();
-		ps.pop();
-
-		handle = _findfirst((search_path + "*").c_str(), &fileinfo);
-		if (handle != -1)
+		data = new unsigned char[size];
+		if(data == 0)
 		{
-			do
-			{
-				if (strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0)
-					continue;
-
-				if (type == PaFindFileType_File && (fileinfo.attrib & _A_SUBDIR) != _A_SUBDIR ||
-					type == PaFindFileType_Directory && (fileinfo.attrib & _A_SUBDIR) == _A_SUBDIR)
-				{
-					if (genMatch(fileinfo.name, filter))
-						out.push_back(fileinfo.name);
-
-					if (nFilePerDir > 0 && ++nAlreadyCount == nFilePerDir) break;
-				}
-
-				if (inc_sub_dirs && (fileinfo.attrib & _A_SUBDIR) == _A_SUBDIR)
-					ps.push(search_path + fileinfo.name + "\\");
-
-			} while (!_findnext(handle, &fileinfo));
-			_findclose(handle);
+			fclose(fn);
+			return 0;
 		}
+
+		size = fread(data, 1, size, fn);
+		fclose(fn);
 	}
 
-	return out.size() - nOldCount;
+	return data;
 }
 
-int paFindFiles(const std::string& path, PaVfiles& out, const char* filter /*= "*"*/, bool inc_sub_dirs /*= true*/, bool clear_out /*= true*/,
+int paFindFilesShort(const char* path, PaVfiles& out, const char* filter /*= "*"*/, bool inc_sub_dirs /*= true*/, bool clear_out /*= true*/, 
 	PaFindFileType type /*= HpFindFileType_File*/, unsigned int nFilePerDir /*= 0*/)
 {
 	char real_path[260];
-	size_t length = path.length();
+	size_t length = strlen(path);
 
-	if (clear_out)
+	if(clear_out)
 		out.clear();
 
-	strcpy(real_path, path.c_str());
-	if (real_path[length - 1] != '\\' && real_path[length - 1] != '/')
-		strcat(real_path, "\\");
-
-	struct _finddata_t fileinfo;
-	long handle;
-	stack<string> ps;
-	size_t nOldCount = out.size();
-	ps.push(real_path);
-
-	while (!ps.empty())
-	{
-		unsigned int nAlreadyCount = 0;
-		string search_path = ps.top();
-		ps.pop();
-
-		handle = _findfirst((search_path + "*").c_str(), &fileinfo);
-		if (handle != -1)
-		{
-			do
-			{
-				if (strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0)
-					continue;
-
-				if (type == PaFindFileType_File && (fileinfo.attrib & _A_SUBDIR) != _A_SUBDIR ||
-					type == PaFindFileType_Directory && (fileinfo.attrib & _A_SUBDIR) == _A_SUBDIR)
-				{
-					if (genMatch(fileinfo.name, filter))
-						out.push_back(search_path + fileinfo.name);
-
-					if (nFilePerDir > 0 && ++nAlreadyCount == nFilePerDir) break;
-				}
-
-				if (inc_sub_dirs && (fileinfo.attrib & _A_SUBDIR) == _A_SUBDIR)
-					ps.push(search_path + fileinfo.name + "\\");
-
-			} while (!_findnext(handle, &fileinfo));
-			_findclose(handle);
-		}
-	}
-
-	return out.size() - nOldCount;
-}
-#endif
-
-int paFindFilesShort(const string& path, PaVfiles& out, const char* filter /*= "*"*/, bool inc_sub_dirs /*= true*/, bool clear_out /*= true*/,
-	PaFindFileType type /*= HpFindFileType_File*/, unsigned int nFilePerDir /*= 0*/)
-{
-	char real_path[260];
-	size_t length = path.length();
-
-	if (clear_out)
-		out.clear();
-
-	strcpy(real_path, path.c_str());
+	strcpy(real_path, path);
 	if (real_path[length - 1] != '\\' && real_path[length - 1] != '/')
 		strcat(real_path, "\\");
 
@@ -244,14 +136,14 @@ int paFindFilesShort(const string& path, PaVfiles& out, const char* filter /*= "
 	size_t nOldCount = out.size();
 	ps.push(real_path);
 
-	while (!ps.empty())
+	while(!ps.empty())
 	{
 		unsigned int nAlreadyCount = 0;
 		string search_path = ps.top();
 		ps.pop();
 
 		HANDLE hFind = FindFirstFileA((search_path + "*").c_str(), &find_data);
-		if (hFind != INVALID_HANDLE_VALUE)
+		if(hFind != INVALID_HANDLE_VALUE)
 		{
 			do
 			{
@@ -262,15 +154,20 @@ int paFindFilesShort(const string& path, PaVfiles& out, const char* filter /*= "
 					type == PaFindFileType_Directory && (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
 				{
 					if (PathMatchSpecA(find_data.cFileName, filter))
-						out.push_back(find_data.cFileName);
+					{
+						if(search_path.size() == real_path_len)
+							out.push_back(find_data.cFileName);
+						else
+							out.push_back(string(&search_path[real_path_len]) + find_data.cFileName);
+					}
 
-					if (nFilePerDir > 0 && ++nAlreadyCount == nFilePerDir) break;
+					if(nFilePerDir > 0 && ++nAlreadyCount == nFilePerDir) break;
 				}
 
-				if (inc_sub_dirs && (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
+				if(inc_sub_dirs && (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
 					ps.push(search_path + find_data.cFileName + "\\");
 
-			} while (FindNextFileA(hFind, &find_data));
+			}while(FindNextFileA(hFind, &find_data));
 			FindClose(hFind);
 		}
 	}
@@ -278,16 +175,16 @@ int paFindFilesShort(const string& path, PaVfiles& out, const char* filter /*= "
 	return out.size() - nOldCount;
 }
 
-int paFindFiles(const string& path, PaVfiles& out, const char* filter /*= "*"*/, bool inc_sub_dirs /*= true*/, bool clear_out /*= true*/,
+int paFindFiles(const char* path, PaVfiles& out, const char* filter /*= "*"*/, bool inc_sub_dirs /*= true*/, bool clear_out /*= true*/, 
 	PaFindFileType type /*= HpFindFileType_File*/, unsigned int nFilePerDir /*= 0*/)
 {
 	char real_path[260];
-	size_t length = path.length();
-
-	if (clear_out)
+	size_t length = strlen(path);
+	
+	if(clear_out)
 		out.clear();
-
-	strcpy(real_path, path.c_str());
+	
+	strcpy(real_path, path);
 	if (real_path[length - 1] != '\\' && real_path[length - 1] != '/')
 		strcat(real_path, "\\");
 
@@ -296,14 +193,14 @@ int paFindFiles(const string& path, PaVfiles& out, const char* filter /*= "*"*/,
 	size_t nOldCount = out.size();
 	ps.push(real_path);
 
-	while (!ps.empty())
+	while(!ps.empty())
 	{
 		unsigned int nAlreadyCount = 0;
 		string search_path = ps.top();
 		ps.pop();
 
 		HANDLE hFind = FindFirstFileA((search_path + "*").c_str(), &find_data);
-		if (hFind != INVALID_HANDLE_VALUE)
+		if(hFind != INVALID_HANDLE_VALUE)
 		{
 			do
 			{
@@ -316,13 +213,13 @@ int paFindFiles(const string& path, PaVfiles& out, const char* filter /*= "*"*/,
 					if (PathMatchSpecA(find_data.cFileName, filter))
 						out.push_back(search_path + find_data.cFileName);
 
-					if (nFilePerDir > 0 && ++nAlreadyCount == nFilePerDir) break;
+					if(nFilePerDir > 0 && ++nAlreadyCount == nFilePerDir) break;
 				}
 
-				if (inc_sub_dirs && (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
+				if(inc_sub_dirs && (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
 					ps.push(search_path + find_data.cFileName + "\\");
 
-			} while (FindNextFileA(hFind, &find_data));
+			}while(FindNextFileA(hFind, &find_data));
 			FindClose(hFind);
 		}
 	}
@@ -330,135 +227,91 @@ int paFindFiles(const string& path, PaVfiles& out, const char* filter /*= "*"*/,
 	return out.size() - nOldCount;
 }
 
-
-#else
-
-int paFindFilesShort(const std::string& path, PaVfiles& out, const char* filter /*= "*"*/, bool inc_sub_dirs /*= true*/, bool clear_out /*= true*/,
-	PaFindFileType type /*= HpFindFileType_File*/, unsigned int nFilePerDir /*= 0*/)
+bool paCompareFile(const char* file1, const char* file2)
 {
-	char real_path[260];
-	size_t length = path.length();
+	size_t size_f1 = paGetFileSize(file1);
+	size_t size_f2 = paGetFileSize(file2);
 
-	if (clear_out)
-		out.clear();
+	if (size_f1 != size_f2)
+		return false;
 
-	strcpy(real_path, path.c_str());
-	if (real_path[length - 1] != '\\' && real_path[length - 1] != '/')
-		strcat(real_path, "/");
+	if (size_f1 == 0)
+		return true;
 
-	struct dirent* fileinfo;
-	DIR* handle;
-	stack<string> ps;
-	size_t nOldCount = out.size();
-	ps.push(real_path);
+	unsigned char* fd1 = paReadFile(file1);
+	unsigned char* fd2 = paReadFile(file2);
 
-	while (!ps.empty())
+	if (fd1 == fd2)
+		return false;
+
+	if (fd1 == 0 || fd2 == 0)
 	{
-		unsigned int nAlreadyCount = 0;
-		string search_path = ps.top();
-		ps.pop();
-
-		handle = opendir(search_path.c_str());
-		if (handle != 0)
-		{
-			while (fileinfo = readdir(handle))
-			{
-				struct stat file_stat;
-				if (strcmp(fileinfo->d_name, ".") == 0 || strcmp(fileinfo->d_name, "..") == 0)
-					continue;
-
-				if (lstat((search_path + fileinfo->d_name).c_str(), &file_stat) < 0)
-					continue;
-
-				if (type == PaFindFileType_File && !S_ISDIR(file_stat.st_mode) ||
-					type == PaFindFileType_Directory && S_ISDIR(file_stat.st_mode))
-				{
-					if (genMatch(fileinfo->d_name, filter))
-						out.push_back(fileinfo->d_name);
-
-					if (nFilePerDir > 0 && ++nAlreadyCount == nFilePerDir) break;
-				}
-
-				if (inc_sub_dirs && S_ISDIR(file_stat.st_mode))
-					ps.push(search_path + fileinfo->d_name + "/");
-			}
-			closedir(handle);
-		}
+		if(fd1 != 0) delete fd1;
+		if(fd2 != 0) delete fd2;
+		return false;
 	}
 
-	return out.size() - nOldCount;
+	bool ret_value = (memcmp(fd1, fd2, size_f1) == 0);
+	delete fd1;
+	delete fd2;
+	return ret_value;
 }
 
-int paFindFiles(const std::string& path, PaVfiles& out, const char* filter /*= "*"*/, bool inc_sub_dirs /*= true*/, bool clear_out /*= true*/,
-	PaFindFileType type /*= HpFindFileType_File*/, unsigned int nFilePerDir /*= 0*/)
+bool paCompareFileBig(const char* file1, const char* file2, size_t cacheSize /*= PAFileBlockPart*/)
 {
-	char real_path[260];
-	size_t length = path.length();
+	ui64 size_f1 = paGetFileSize64(file1);
+	ui64 size_f2 = paGetFileSize64(file2);
 
-	if (clear_out)
-		out.clear();
+	if (size_f1 != size_f2)
+		return false;
 
-	strcpy(real_path, path.c_str());
-	if (real_path[length - 1] != '\\' && real_path[length - 1] != '/')
-		strcat(real_path, "/");
+	if (size_f1 == 0)
+		return true;
 
-	struct dirent* fileinfo;
-	DIR* handle;
-	stack<string> ps;
-	size_t nOldCount = out.size();
-	ps.push(real_path);
+	if(size_f1 < cacheSize)	//对小于12MB的文件用内存比较
+		return paCompareFile(file1, file2);
 
-	while (!ps.empty())
+	FILE* f1 = fopen(file1, "rb");
+	FILE* f2 = fopen(file2, "rb");
+
+	if(f1 == 0 || f2 == 0)
 	{
-		unsigned int nAlreadyCount = 0;
-		string search_path = ps.top();
-		ps.pop();
-
-		handle = opendir(search_path.c_str());
-		if (handle != 0)
-		{
-			while (fileinfo = readdir(handle))
-			{
-				struct stat file_stat;
-				if (strcmp(fileinfo->d_name, ".") == 0 || strcmp(fileinfo->d_name, "..") == 0)
-					continue;
-
-				if (lstat((search_path + fileinfo->d_name).c_str(), &file_stat) < 0)
-					continue;
-
-				if (type == PaFindFileType_File && !S_ISDIR(file_stat.st_mode) ||
-					type == PaFindFileType_Directory && S_ISDIR(file_stat.st_mode))
-				{
-					if (genMatch(fileinfo->d_name, filter))
-						out.push_back(search_path + fileinfo->d_name);
-
-					if (nFilePerDir > 0 && ++nAlreadyCount == nFilePerDir) break;
-				}
-
-				if (inc_sub_dirs && S_ISDIR(file_stat.st_mode)){
-					if(genMatch(fileinfo->d_name, "del-*")){
-						printf("ignore directory: %s\n", fileinfo->d_name);
-					}else{
-						ps.push(search_path + fileinfo->d_name + "/");
-					}
-				}
-			}
-			closedir(handle);
-		}
+		if(f1 == 0) fclose(f1);
+		if(f2 == 0) fclose(f2);
+		return false;
 	}
 
-	return out.size() - nOldCount;
+	unsigned char* buf1 = (unsigned char*)malloc(cacheSize);
+	unsigned char* buf2 = (unsigned char*)malloc(cacheSize);
+
+	bool ret = false;
+	size_t cbRead1 = fread(buf1, 1, cacheSize, f1);
+	size_t cbRead2 = fread(buf2, 1, cacheSize, f2);
+
+	while(!feof(f1))
+	{
+		if(cbRead1 != cbRead2) goto notMatched;
+		if(cbRead1 == 0) break;
+		if(memcmp(buf1, buf2, cbRead1) != 0) goto notMatched;
+
+		cbRead1 = fread(buf1, 1, cacheSize, f1);
+		cbRead2 = fread(buf2, 1, cacheSize, f2);
+	};
+
+	if(cbRead1 > 0 && (cbRead1 != cbRead2 || memcmp(buf1, buf2, cbRead1) != 0)) goto notMatched;
+	ret = true;
+
+notMatched:
+	if(f1 == 0) fclose(f1);
+	if(f2 == 0) fclose(f2);
+	if(buf1 != 0) free(buf1);
+	if(buf2 != 0) free(buf2);
+	return ret;
 }
-
-
-#endif
 
 bool paFileExists(const char* file)
 {
-	FILE* f = fopen(file, "rb");
-	if (!f) return false;
-	fclose(f);
-	return true;
+	return PathFileExistsA(file);
 }
 
 void paFileName(const char* full_path, char* name_suffix /*= 0*/, char* name_buffer /*= 0*/, char* suffix_buffer /*= 0*/, char* dir_buffer /*= 0*/)
@@ -466,14 +319,14 @@ void paFileName(const char* full_path, char* name_suffix /*= 0*/, char* name_buf
 	int pos = 0;
 	int pathlen = 0;
 
-	if (name_buffer != 0 || name_suffix != 0 || name_suffix != 0 || dir_buffer != 0)
+	if(name_buffer != 0 || name_suffix != 0 || name_suffix != 0 || dir_buffer != 0)
 	{
 		pathlen = strlen(full_path);
-		if (pathlen > 0)
+		if(pathlen > 0)
 		{
 			for (int i = pathlen - 1; i >= 0; --i)
 			{
-				if (full_path[i] == '\\' || full_path[i] == '/')
+				if(full_path[i] == '\\' || full_path[i] == '/')
 				{
 					pos = i + 1;
 					break;
@@ -482,7 +335,7 @@ void paFileName(const char* full_path, char* name_suffix /*= 0*/, char* name_buf
 		}
 	}
 
-	if (dir_buffer != 0)
+	if(dir_buffer != 0)
 	{
 		int n = max(0, pos - 1);
 		memcpy(dir_buffer, full_path, n);
@@ -491,11 +344,11 @@ void paFileName(const char* full_path, char* name_suffix /*= 0*/, char* name_buf
 
 	if (name_suffix != 0)
 		strcpy(name_suffix, &full_path[pos]);
-
-	if (name_buffer != 0)
+	
+	if(name_buffer != 0)
 	{
 		const char* ptpos = strrchr(&full_path[pos], '.');
-		if (ptpos == 0)
+		if(ptpos == 0)
 			strcpy(name_buffer, &full_path[pos]);
 		else
 		{
@@ -507,9 +360,132 @@ void paFileName(const char* full_path, char* name_suffix /*= 0*/, char* name_buf
 	if (suffix_buffer != 0)
 	{
 		const char* ptpos = strrchr(&full_path[pos], '.');
-		if (ptpos == 0)
+		if(ptpos == 0)
 			*suffix_buffer = 0;
 		else
 			strcpy(suffix_buffer, ptpos + 1);
 	}
+}
+
+void paGetModulePath(char* path /*= 0*/, char* dir /*= 0*/, char* name_suffix /*= 0*/, char* name /*= 0*/)
+{
+	char p[260] = {0};
+	GetModuleFileNameA(0, p, sizeof(p));
+	paFileName(p, name_suffix, name, 0, dir);
+	if(path != 0) strcpy(path, p);
+}
+
+char* paChangePathName(char* full_path, const char* dir /*= 0*/, const char* name /*= 0*/, const char* suffix /*= 0*/)
+{
+	if(dir == 0 && name == 0 && suffix == 0)
+		return full_path;
+
+	char ffdir[260] = {0};
+	char ffname[260] = {0};
+	char ffsufix[260] = {0};
+	paFileName(full_path, 0, name == 0 ? ffname : 0, suffix == 0 ? ffsufix : 0, dir == 0 ? ffdir : 0);
+	
+	const char* dddir	= dir		== 0 ? ffdir	: dir;
+	const char* ddname	= name		== 0 ? ffname	: name;
+	const char* ddsufix = suffix	== 0 ? ffsufix	: suffix;
+
+	const char* adaPlus = 0;
+	int dirLen = strlen(dddir);
+	if(dirLen == 0 || dirLen > 0 && (dddir[dirLen - 1] == '\\' || dddir[dirLen - 1] == '/'))
+		adaPlus = "%s%s";
+	else
+		adaPlus = "%s\\%s";
+	
+	if(strcmp(ddsufix, "") == 0)
+	{
+		if(dirLen == 0)
+			strcpy(full_path, ddname);
+		else
+		{
+			if(dddir[dirLen - 1] == '\\' || dddir[dirLen - 1] == '/')
+				sprintf(full_path, "%s%s", dddir, ddname);
+			else
+				sprintf(full_path, "%s\\%s", dddir, ddname);
+		}
+	}
+	else
+	{
+		if(dirLen == 0)
+			sprintf(full_path, "%s.%s", ddname, ddsufix);
+		else
+		{
+			if(dddir[dirLen - 1] == '\\' || dddir[dirLen - 1] == '/')
+				sprintf(full_path, "%s%s.%s", dddir, ddname, ddsufix);
+			else
+				sprintf(full_path, "%s\\%s.%s", dddir, ddname, ddsufix);
+		}
+	}
+	return full_path;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//写ini文件
+//如果没有指定完整路径名，则windows会在windows目录查找文件。如果文件没有找到，则函数会创建它
+bool paWriteIni(const char* app, const char* key, const char* fileName, const char* fmtValue, ...)
+{
+	char buffer[1 << 16];
+	va_list vl;
+	va_start(vl, fmtValue);
+	vsprintf(buffer, fmtValue, vl);
+	return WritePrivateProfileStringA(app, key, buffer, fileName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//读ini文件
+bool paReadIni(const char* app, const char* key, const char* fileName, std::string& value)
+{
+	value.reserve(1024);
+	int len = GetPrivateProfileStringA(app, key, 0, (char*)value.c_str(), 1024, fileName);
+	value = value.data();
+	return len > 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//创建多级目录
+bool paCreateDirectoryx(const char* dir)
+{
+	if(paFileExists(dir)) return true;
+
+#define IsSplitChar(c)     (c == '/' || c == '\\')
+
+	int i = 0;
+	int prev = 0;
+	if(IsSplitChar(dir[0]))
+	{
+		prev++;
+		i++;
+	}
+
+	char itDir[260] = {0};
+	for (; dir[i] != 0; ++i)
+	{
+		if (IsSplitChar(dir[i]))
+		{
+			int len = i - prev;
+			if(len > 0)
+			{
+				strncat(itDir, &dir[prev], len);
+				if(!paFileExists(itDir) && !CreateDirectoryA(itDir, 0))
+					return false;
+
+				strcat(itDir, "/");
+			}
+			prev = i + 1;
+		}
+	}
+
+	int len = i - prev;
+	if(len > 0)
+	{
+		strncat(itDir, &dir[prev], len);
+		if(!paFileExists(itDir) && !CreateDirectoryA(itDir, 0))
+			return false;
+	}
+	return true;
 }

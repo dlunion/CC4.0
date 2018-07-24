@@ -1600,7 +1600,7 @@ void EncodeConfPrediction(const Dtype* conf_data, const int num,
           if (do_neg_mining) {
             // Copy scores for matched bboxes.
             caffe_copy<Dtype>(num_classes, conf_data + j * num_classes,
-                conf_pred_data + count * num_classes, 0);
+                conf_pred_data + count * num_classes);
             ++count;
           }
         }
@@ -1612,7 +1612,7 @@ void EncodeConfPrediction(const Dtype* conf_data, const int num,
           int j = all_neg_indices[i][n];
           CHECK_LT(j, num_priors);
           caffe_copy<Dtype>(num_classes, conf_data + j * num_classes,
-              conf_pred_data + count * num_classes, 0);
+              conf_pred_data + count * num_classes);
           switch (conf_loss_type) {
             case MultiBoxLossParameter_ConfLossType_SOFTMAX:
               conf_gt_data[count] = background_label_id;

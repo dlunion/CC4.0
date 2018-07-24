@@ -7,6 +7,7 @@
 #include "caffe/util/benchmark.hpp"
 #include "caffe/util/sampler.hpp"
 #include "caffe/cc/core/cc.h"
+#include "caffe/cc/core/cc_utils.h"
 #include <map>
 #include <string>
 #include <import-staticlib.h>
@@ -14,7 +15,10 @@
 #include <highgui.h>
 #include <thread>
 #include "caffe/layers/cpp_layer.hpp"
- 
+
+#include <io.h>
+#include <direct.h> 
+
 #include <google/protobuf/text_format.h>
 #include <io.h>
 #include <google/protobuf/io/coded_stream.h>
@@ -39,6 +43,17 @@
 #include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/map_util.h>
 #include <google/protobuf/stubs/stl_util.h>
+
+#include "boost/scoped_ptr.hpp"
+#include "boost/variant.hpp"
+#include "gflags/gflags.h"
+#include "glog/logging.h"
+
+#include "caffe/proto/caffe.pb.h"
+#include "caffe/util/db.hpp"
+#include "caffe/util/format.hpp"
+#include "caffe/util/io.hpp"
+#include "caffe/util/rng.hpp"
 
 #undef GetMessage
 
@@ -120,7 +135,7 @@ namespace cc{
 	}
 
 	void CCString::release(){
-		if (buffer) delete []buffer;
+		if (buffer) delete[]buffer;
 		length = 0;
 		buffer = 0;
 		capacity_size = 0;
@@ -182,7 +197,7 @@ namespace cc{
 				if (oldlength > 0)
 					memcpy(buffer, oldbuffer, oldlength);
 
-				delete []oldbuffer;
+				delete[]oldbuffer;
 				copyoffset = oldlength;
 			}
 		}
@@ -191,7 +206,7 @@ namespace cc{
 		memcpy(buffer + copyoffset, str, slen);
 		buffer[length] = 0;
 	}
-	
+
 	void CCString::set(const char* str, int strlength){
 		int slen = strlength < 0 ? (str ? strlen(str) : 0) : strlength;
 		if (slen == 0){
@@ -201,7 +216,7 @@ namespace cc{
 
 		if (slen + 1 > capacity_size){
 			release();
-			capacity_size = slen*1.3+1;
+			capacity_size = slen*1.3 + 1;
 			buffer = new char[capacity_size];
 		}
 
@@ -243,45 +258,103 @@ namespace cc{
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////
-	DataLayer::DataLayer(){
-		this->cacheBatchSize_ = getBatchCacheSize();
+	typedef map<std::thread::id, int> watcher_thread_map;
+
+	DataLayer::DataLayer(int batchCacheSize, int watcherSize){
+		this->cacheBatchSize_ = batchCacheSize;
 		this->cacheBatchSize_ = max(1, cacheBatchSize_);
 		this->cacheBatchSize_ = min(1000, cacheBatchSize_);
+		this->watcher_map_ = new watcher_thread_map();
 
-		this->batch_ = new Blob**[cacheBatchSize_];
-		this->batch_flags_ = new bool[cacheBatchSize_];
+		this->watcherSize_ = watcherSize;
+		this->watcherSize_ = max(1, watcherSize_);
+		this->watcherSize_ = min(100, watcherSize_);
+
+		this->batch_ = new Blob***[watcherSize_];
+		this->batch_flags_ = new bool*[watcherSize_];
+		this->hsem_ = new void*[watcherSize_];
+		for (int i = 0; i < watcherSize_; ++i){
+			this->batch_[i] = new Blob**[cacheBatchSize_];
+			this->batch_flags_[i] = new bool[cacheBatchSize_];
+			this->hsem_[i] = (void*)CreateSemaphoreA(0, 0, 1, 0);
+
+			memset(this->batch_flags_[i], 0, sizeof(bool)*cacheBatchSize_);
+			memset(this->batch_[i], 0, sizeof(Blob**)*cacheBatchSize_);
+		}
 		this->numTop_ = 0;
-
-		memset(this->batch_flags_, 0, sizeof(bool)*cacheBatchSize_);
+		setPrintWaitData(true);
 	}
 
 	void DataLayer::stopBatchLoader(){
-		stopWatcher();
+		stopWatcher(); 
 	}
 
-	int DataLayer::getBatchCacheSize(){
-		return 3;
+	void DataLayer::reshape(Blob** bottom, int numBottom, Blob** top, int numTop){
+
+		return;
+
+		bool doReshape = false;
+		if (cacheBatchSize_ > 0){
+			for (int w = 0; w < watcherSize_; ++w){
+				for (int i = 0; i < numTop; ++i){
+					if (batch_[w][0][i]->count() != top[i]->count()){
+						doReshape = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if (doReshape){
+			stopWatcher();
+
+			for (int w = 0; w < watcherSize_; ++w){
+				for (int i = 0; i < cacheBatchSize_; ++i){
+					for (int j = 0; j < this->numTop_; ++j)
+						batch_[w][i][j]->ReshapeLike(*top[j]);
+
+					batch_flags_[w][i] = false;
+				}
+			}
+			startWatcher();
+		}
 	}
 
 	DataLayer::~DataLayer(){
 		stopWatcher();
-		for (int i = 0; i < cacheBatchSize_; ++i){
-			for (int j = 0; j < this->numTop_; ++j)
-				releaseBlob(batch_[i][j]);
+		for (int w = 0; w < watcherSize_; ++w){
+			for (int i = 0; i < cacheBatchSize_; ++i){
+				for (int j = 0; j < this->numTop_; ++j)
+					releaseBlob(batch_[w][i][j]);
 
-			delete[] this->batch_[i];
+				delete[] this->batch_[w][i];
+			}
+			delete[] this->batch_[w];
+			delete[] this->batch_flags_[w];
+			CloseHandle(this->hsem_[w]);
 		}
+
+		delete[] this->hsem_;
 		delete[] this->batch_flags_;
 		delete[] this->batch_;
+		if (this->watcher_map_)
+			delete (watcher_thread_map*)this->watcher_map_;
 	}
 
 	void DataLayer::setupBatch(Blob** top, int numTop){
 		this->numTop_ = numTop;
-		for (int i = 0; i < cacheBatchSize_; ++i){
-			batch_[i] = new Blob*[numTop];
-			batch_flags_[i] = false;
-			for (int j = 0; j < numTop; ++j){
-				batch_[i][j] = newBlobByShape(top[j]->num(), top[j]->channel(), top[j]->height(), top[j]->width());
+
+		for (int w = 0; w < watcherSize_; ++w){
+			batch_[w] = new Blob**[cacheBatchSize_];
+			batch_flags_[w] = new bool[cacheBatchSize_];
+			for (int i = 0; i < cacheBatchSize_; ++i){
+				batch_[w][i] = new Blob*[numTop];
+				batch_flags_[w][i] = false;
+				for (int j = 0; j < numTop; ++j){
+					batch_[w][i][j] = newBlobByShape(top[j]->num(), top[j]->channel(), top[j]->height(), top[j]->width());
+					batch_[w][i][j]->mutable_cpu_data();	//分配内存
+					batch_[w][i][j]->mutable_gpu_data();	//分配内存
+				}
 			}
 		}
 	}
@@ -290,56 +363,112 @@ namespace cc{
 		return 1000;
 	}
 
-	void DataLayer::watcher(DataLayer* ptr){
+	void DataLayer::watcher(DataLayer* ptr, int ind){
+		static int count_run = 0;
+		//srand(++count_run);
 		for (int i = 0; i < ptr->cacheBatchSize_; ++i){
-			ptr->loadBatch(ptr->batch_[i], ptr->numTop_);
-			ptr->batch_flags_[i] = true;
+			//cout << "loadBatch threadID: " << GetCurrentThreadId() << endl;
+			ptr->loadBatch(ptr->batch_[ind][i], ptr->numTop_);
+			ptr->batch_flags_[ind][i] = true;
 		}
 
 		while (ptr->keep_run_watcher_){
 			for (int i = 0; i < ptr->cacheBatchSize_; ++i){
-				if (!ptr->batch_flags_[i]){
-					ptr->loadBatch(ptr->batch_[i], ptr->numTop_);
-					ptr->batch_flags_[i] = true;
+				if (!ptr->batch_flags_[ind][i]){
+					//cout << "loadBatch threadID: " << GetCurrentThreadId() << endl;
+					ptr->loadBatch(ptr->batch_[ind][i], ptr->numTop_);
+					ptr->batch_flags_[ind][i] = true;
 				}
 			}
-			Sleep(10);
+			sleep_cc(1);
 		}
-		ReleaseSemaphore((HANDLE)ptr->hsem_, 1, 0);
+		ReleaseSemaphore((HANDLE)ptr->hsem_[ind], 1, 0);
 	}
 
 	void DataLayer::startWatcher(){
-		hsem_ = (void*)CreateSemaphoreA(0, 0, 1, 0);
 		keep_run_watcher_ = true;
-		thread(watcher, this).detach();
+
+		watcher_thread_map& threadmap = *(watcher_thread_map*)this->watcher_map_;
+		threadmap.clear();
+
+		for (int i = 0; i < watcherSize_; ++i){
+			thread t(watcher, this, i);
+			threadmap[t.get_id()] = i;
+			t.detach();
+		}
+	}
+
+	int DataLayer::getWatcherIndex(){
+		std::thread::id id = this_thread::get_id();
+		watcher_thread_map& threadmap = *(watcher_thread_map*)this->watcher_map_;
+
+		watcher_thread_map::const_iterator indIter = threadmap.find(id);
+		if (indIter == threadmap.end())
+			return -1;
+
+		return indIter->second;
 	}
 
 	void DataLayer::stopWatcher(){
 		if (keep_run_watcher_){
 			keep_run_watcher_ = false;
-			WaitForSingleObject((HANDLE)hsem_, -1);
+
+			for (int i = 0; i < watcherSize_; ++i)
+				WaitForSingleObject((HANDLE)hsem_[i], -1);
+
+			watcher_thread_map& threadmap = *(watcher_thread_map*)this->watcher_map_;
+			threadmap.clear();
 		}
 	}
 
+	void DataLayer::setPrintWaitData(bool wait){
+		this->print_waitdata_ = wait;
+	}
+	 
 	void DataLayer::pullBatch(Blob** top, int numTop){
 		double tick = getTickCount();
 		double prevtime = tick;
+		vector<int> indWatcher(watcherSize_);
+		vector<int> indCacheBatch(cacheBatchSize_);
+
+		for (int i = 0; i < indWatcher.size(); ++i)
+			indWatcher[i] = i;
+		
+		for (int i = 0; i < indCacheBatch.size(); ++i)
+			indCacheBatch[i] = i;
+
+		std::random_shuffle(indWatcher.begin(), indWatcher.end());
+		std::random_shuffle(indCacheBatch.begin(), indCacheBatch.end());
+
+		bool fristwait = true;
 		while (true){
-			for (int i = 0; i < cacheBatchSize_; ++i){
-				if (batch_flags_[i]){
-					for (int j = 0; j < numTop; ++j)
-						top[j]->copyFrom(*batch_[i][j], false, true);
-					batch_flags_[i] = false;
-					return;
+			for (int w = 0; w < watcherSize_; ++w){
+				int indw = indWatcher[w];
+				for (int i = 0; i < cacheBatchSize_; ++i){
+					int indc = indCacheBatch[i];
+					if (batch_flags_[indw][indc]){
+						for (int j = 0; j < numTop; ++j)
+							top[j]->copyFrom(*batch_[indw][indc][j], false, true);
+						batch_flags_[indw][indc] = false;
+						return;
+					}
 				}
 			}
 
-			Sleep(10);
-			float waitTime = (getTickCount() - tick) / getTickFrequency() * 1000;
-			float printTime = (getTickCount() - prevtime) / getTickFrequency() * 1000;
-			if (printTime > waitForDataTime()){
-				prevtime = getTickCount();
-				LOG(INFO) << "wait for data: " << waitTime << " ms";
+			sleep_cc(1);
+
+			if (print_waitdata_){
+				if (fristwait){
+					LOG(INFO) << "wait for data.";
+					fristwait = false;
+				}
+
+				float waitTime = (getTickCount() - tick) / getTickFrequency() * 1000;
+				float printTime = (getTickCount() - prevtime) / getTickFrequency() * 1000;
+				if (printTime > waitForDataTime()){
+					prevtime = getTickCount();
+					LOG(INFO) << "wait for data: " << waitTime << " ms";
+				}
 			}
 		}
 	}
@@ -367,7 +496,8 @@ namespace cc{
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	SSDDataLayer::SSDDataLayer(){
+	SSDDataLayer::SSDDataLayer(int batchCacheSize, int watcherSize):
+		DataLayer(batchCacheSize, watcherSize){
 
 	}
 
@@ -381,6 +511,10 @@ namespace cc{
 
 	int SSDDataLayer::getBatchCacheSize(){
 		return 3;
+	}
+
+	int SSDDataLayer::getWatcherSize(){
+		return 5;
 	}
 
 	void SSDDataLayer::setup(const char* name, const char* type, const char* param_str, int phase, Blob** bottom, int numBottom, Blob** top, int numTop){
@@ -670,6 +804,20 @@ namespace cc{
 			*(std::map<std::string, int>*)label_map, (caffe::AnnotatedDatum*)inplace_anndatum);
 		((caffe::AnnotatedDatum*)inplace_anndatum)->set_type(caffe::AnnotatedDatum_AnnotationType_BBOX);
 		return status;
+	}
+
+	CCAPI void* CCCALL loadDatum(const char* path, int label){
+		caffe::Datum* d = new caffe::Datum();
+		bool ok = caffe::ReadFileToDatum(path, vector<float>(1, label), d);
+		if (!ok){
+			delete d;
+			return 0;
+		}
+		return d;
+	}
+
+	CCAPI void CCCALL releaseDatum(void* datum){
+		delete (caffe::Datum*)datum;
 	}
 
 	CCAPI void* CCCALL loadLabelMap(const char* prototxt){
@@ -1418,7 +1566,7 @@ namespace cc{
 		return getValue2((const Message*)message, path, 0, val);
 	}
 
-	static bool ReadProtoFromTextFile(const char* filename, Message* proto) {
+	static bool _localReadProtoFromTextFile(const char* filename, Message* proto) {
 		int fd = open(filename, O_RDONLY);
 		FileInputStream* input = new FileInputStream(fd);
 		bool success = google::protobuf::TextFormat::Parse(input, proto);
@@ -1430,7 +1578,7 @@ namespace cc{
 	CCAPI MessageHandle CCCALL loadMessageSolverFromPrototxt(const char* filename) {
 
 		caffe::SolverParameter* solver = new caffe::SolverParameter();
-		bool success = cc::ReadProtoFromTextFile(filename, solver);
+		bool success = cc::_localReadProtoFromTextFile(filename, solver);
 
 		if (success) return solver;
 		delete solver;
@@ -1439,14 +1587,14 @@ namespace cc{
 
 	CCAPI MessageHandle CCCALL loadMessageNetFromPrototxt(const char* filename) {
 		caffe::NetParameter* net = new caffe::NetParameter();
-		bool success = cc::ReadProtoFromTextFile(filename, net);
+		bool success = cc::_localReadProtoFromTextFile(filename, net);
 
 		if (success) return net;
 		delete net;
 		return 0;
 	}
 
-	static bool ReadProtoFromBinaryFile(const char* filename, Message* proto) {
+	static bool _localReadProtoFromBinaryFile(const char* filename, Message* proto) {
 		int fd = open(filename, O_RDONLY | O_BINARY);
 		if (fd == -1) return false;
 
@@ -1467,9 +1615,114 @@ namespace cc{
 
 	CCAPI MessageHandle CCCALL loadMessageNetCaffemodel(const char* filename) {
 		caffe::NetParameter* net = new caffe::NetParameter();
-		bool success = cc::ReadProtoFromBinaryFile(filename, net);
+		bool success = cc::_localReadProtoFromBinaryFile(filename, net);
 		if (success) return net;
 		delete net;
 		return 0;
 	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	static struct LMDB_Native{
+		caffe::db::DB* db;
+		caffe::db::Transaction* transaction;
+		int count;
+	};
+
+	#ifdef WIN32
+	#define ACCESS(fileName,accessMode) _access(fileName,accessMode)
+	#define MKDIR(path) _mkdir(path)
+	#else
+	#define ACCESS(fileName,accessMode) access(fileName,accessMode)
+	#define MKDIR(path) mkdir(path,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
+	#endif
+
+	// 从左到右依次判断文件夹是否存在,不存在就创建
+	// example: /home/root/mkdir/1/2/3/4/
+	// 注意:最后一个如果是文件夹的话,需要加上 '\' 或者 '/'
+	int32_t createDirectory(const std::string &directoryPath){
+		uint32_t dirPathLen = directoryPath.length();
+		if (dirPathLen > 256)
+			return -1;
+		
+		char tmpDirPath[256] = { 0 };
+		for (uint32_t i = 0; i < dirPathLen; ++i){
+			tmpDirPath[i] = directoryPath[i];
+			if (tmpDirPath[i] == '\\' || tmpDirPath[i] == '/'){
+				if (ACCESS(tmpDirPath, 0) != 0){
+					int32_t ret = MKDIR(tmpDirPath);
+					if (ret != 0)
+						return ret;
+				}
+			}
+		}
+		return MKDIR(directoryPath.c_str());
+	}
+
+	LMDB::LMDB(const char* folder){
+		createDirectory(folder);
+
+		LMDB_Native* native = new LMDB_Native();
+		this->native_ = native;
+
+		native->db = caffe::db::GetDB("lmdb");
+		native->db->Open(folder, caffe::db::NEW);
+		native->transaction = native->db->NewTransaction();
+		native->count = 0;
+	}
+
+	void LMDB::put(const char* key, const void* data, int length){
+		LMDB_Native* native = (LMDB_Native*)this->native_;
+		native->transaction->Put(key, string((char*)data, (char*)data + length));
+		native->count++;
+
+		if (native->count % 1000 == 0){
+			LOG(INFO) << "process " << native->count << " puts.";
+			native->transaction->Commit();
+			delete native->transaction;
+			native->transaction = native->db->NewTransaction();
+		}
+	}
+	 
+	void LMDB::putDatum(const char* key, void* datum){
+		caffe::Datum* anndatum = (caffe::Datum*)datum;
+		LMDB_Native* native = (LMDB_Native*)this->native_;
+		string str;
+		if (!anndatum->SerializeToString(&str)){
+			LOG(INFO) << "SerializeToString fail[" << key << "]";
+		}
+		else{
+			put(key, str.c_str(), str.size());
+		}
+	}
+
+	void LMDB::putAnnotatedDatum(const char* key, void* datum){
+		caffe::AnnotatedDatum* anndatum = (caffe::AnnotatedDatum*)datum;
+		LMDB_Native* native = (LMDB_Native*)this->native_;
+		string str;
+		if (!anndatum->SerializeToString(&str)){
+			LOG(INFO) << "SerializeToString fail[" << key << "]";
+		}
+		else{
+			put(key, str.c_str(), str.size());
+		}
+	}
+
+	LMDB::~LMDB(){
+		release();
+	}
+
+	void LMDB::release(){
+		if (this->native_){
+			LMDB_Native* native = (LMDB_Native*)this->native_;
+			if (native->count % 1000 != 0)
+				native->transaction->Commit();
+
+			native->db->Close();
+			delete native->transaction;
+			delete native->db;
+			delete native;
+			this->native_ = 0;
+		}
+	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

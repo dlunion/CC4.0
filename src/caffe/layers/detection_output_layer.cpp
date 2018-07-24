@@ -184,7 +184,7 @@ void DetectionOutputLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 	  top1_shape.push_back(bottom[0]->num());
 	  top1_shape.push_back(1);
 	  top1_shape.push_back(1);
-	  top1_shape.push_back(7);
+	  top1_shape.push_back(8);
 	  top[1]->Reshape(top1_shape);
   }
 }
@@ -221,6 +221,7 @@ void DetectionOutputLayer<Dtype>::Forward_cpu(
                   code_type_, variance_encoded_in_target_, clip_bbox,
                   &all_decode_bboxes);
 
+  const Dtype* conf_cpu_data = conf_permute_.cpu_data();
   int num_kept = 0;
   vector<map<int, vector<int> > > all_indices;
   for (int i = 0; i < num; ++i) {
@@ -307,13 +308,17 @@ void DetectionOutputLayer<Dtype>::Forward_cpu(
     top_data = top[0]->mutable_cpu_data();
   }
 
+  //统计top1所需要的输出的float长度
+  int num_top1_float_count = 1;
   int count = 0;
   boost::filesystem::path output_directory(output_directory_);
   for (int i = 0; i < num; ++i) {
+	  num_top1_float_count++;
     const map<int, vector<float> >& conf_scores = all_conf_scores[i];
     const LabelBBox& decode_bboxes = all_decode_bboxes[i];
     for (map<int, vector<int> >::iterator it = all_indices[i].begin();
          it != all_indices[i].end(); ++it) {
+		num_top1_float_count++;
       int label = it->first;
       if (conf_scores.find(label) == conf_scores.end()) {
         // Something bad happened if there are no predictions for current label.
@@ -337,6 +342,8 @@ void DetectionOutputLayer<Dtype>::Forward_cpu(
       }
       for (int j = 0; j < indices.size(); ++j) {
         int idx = indices[j];
+		num_top1_float_count += 7;
+
         top_data[count * 7] = i;
         top_data[count * 7 + 1] = label;
         top_data[count * 7 + 2] = scores[idx];
@@ -469,6 +476,7 @@ void DetectionOutputLayer<Dtype>::Forward_cpu(
       }
     }
   }
+
   if (visualize_) {
 #ifdef USE_OPENCV
     vector<cv::Mat> cv_imgs;

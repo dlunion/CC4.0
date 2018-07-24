@@ -26,8 +26,8 @@ using namespace std;
 
 namespace cc{
 
-#define VersionStr		"CC4.0.2"
-#define VersionInt		0x0402
+#define VersionStr		"CC4.0.3"
+#define VersionInt		0x0403
 
 	using cv::Mat;
 	//这是一个智能指针类，负责自动释放一些指针	
@@ -79,12 +79,6 @@ namespace cc{
 			this->ptr = other.ptr;
 			addRef();
 			return *this;
-		}
-
-		DtypePtr get() const{
-			if (this->ptr)
-				return ptr->ptr;
-			return 0;
 		}
 
 		DtypePtr get(){
@@ -157,26 +151,6 @@ namespace cc{
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	struct CCAPI BlobData{
-		float* list;
-		int num;
-		int channels;
-		int height;
-		int width;
-		int capacity_count;		//保留空间的元素个数长度，字节数请 * sizeof(float)
-
-		BlobData();
-		virtual ~BlobData();
-		bool empty() const;
-		int count() const;
-		void reshape(int num, int channels, int height, int width);
-		void reshapeLike(const BlobData* other);
-		void copyFrom(const BlobData* other);
-		void copyFrom(const Blob* other);
-		void reshapeLike(const Blob* other);
-		void release();
-	};
-
 	struct ObjectInfo{
 		float score;
 		float xmin, ymin, xmax, ymax;
@@ -208,9 +182,13 @@ namespace cc{
 	} semaphore;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define CLASSIFIER_INVALID_DEVICE_ID			-2
 	class CCAPI Classifier{
 	public:
 		Classifier(const char* prototxt, const char* caffemodel, float scale, int numMeans, float* meanValue, int gpuID);
+		Classifier(const char* datmodel, float scale, int numMeans, float* meanValue, int gpuID);
+		void initContext();
+		bool isInitContext();
 		virtual ~Classifier();
 		void forward(const Mat& im);
 		void forward(int num, const Mat* ims);
@@ -218,19 +196,32 @@ namespace cc{
 		void reshape(int num = -1, int channels = -1, int height = -1, int width = -1);
 		Blob* getBlob(const char* name);
 		void getBlob(const char* name, BlobData* data);
-
+		Blob* inputBlob(int index);
+		Blob* outputBlob(int index);
+		
 	private:
 		float mean_[3];
 		int num_mean_;
 		float scale_;
 		WPtr<Net> net_;
-		int gpuID;
+		int gpuID_;
+		CCString prototxt_;
+		CCString caffemodel_;
+		CCString datmodel_;
+		int modelFrom_;
+		bool contextInited_;
 	};
 
+	CCAPI Classifier* CCCALL loadClassifier2(const char* datmodel, float scale, int numMeans, float* meanValue, int gpuID);
 	CCAPI Classifier* CCCALL loadClassifier(const char* prototxt, const char* caffemodel, float scale, int numMeans, float* meanValue, int gpuID);
 	CCAPI void CCCALL releaseClassifier(Classifier* clas);
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	CCAPI int CCCALL argmax(Blob* classification_blob, int numIndex = 0, float* conf_ptr = 0);
+	CCAPI int CCCALL argmax(float* data_ptr, int num_data, float* conf_ptr);
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 #define operType_Forward			2
 #define operType_Detection			3
@@ -307,13 +298,8 @@ namespace cc{
 	CCAPI void CCCALL caffe_cpu_axpby(const int N, const Dtype alpha, const Dtype* X,
 		const Dtype beta, Dtype* Y);
 
-	//cudaMemcpyHostToHost		= 0,      /**< Host   -> Host */
-	//cudaMemcpyHostToDevice	= 1,      /**< Host   -> Device */
-	//cudaMemcpyDeviceToHost	= 2,      /**< Device -> Host */
-	//cudaMemcpyDeviceToDevice	= 3,      /**< Device -> Device */
-	//cudaMemcpyDefault			= 4       /**< Default based unified virtual address space */
 	template <typename Dtype>
-	CCAPI void CCCALL caffe_copy(const int N, const Dtype *X, Dtype *Y, int type);
+	CCAPI void CCCALL caffe_copy(const int N, const Dtype *X, Dtype *Y);
 
 	template <typename Dtype>
 	CCAPI void CCCALL caffe_set(const int N, const Dtype alpha, Dtype *X);
@@ -435,12 +421,7 @@ namespace cc{
 	CCAPI void CCCALL caffe_gpu_axpby(const int N, const Dtype alpha, const Dtype* X,
 		const Dtype beta, Dtype* Y);
 
-	//cudaMemcpyHostToHost		= 0,      /**< Host   -> Host */
-	//cudaMemcpyHostToDevice	= 1,      /**< Host   -> Device */
-	//cudaMemcpyDeviceToHost	= 2,      /**< Device -> Host */
-	//cudaMemcpyDeviceToDevice	= 3,      /**< Device -> Device */
-	//cudaMemcpyDefault			= 4       /**< Default based unified virtual address space */
-	CCAPI void CCCALL caffe_gpu_memcpy(const size_t N, const void *X, void *Y, int type = 4);
+	CCAPI void CCCALL caffe_gpu_memcpy(const size_t N, const void *X, void *Y);
 
 	template <typename Dtype>
 	CCAPI void CCCALL caffe_gpu_set(const int N, const Dtype alpha, Dtype *X);

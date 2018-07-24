@@ -36,8 +36,8 @@ int64_t cluster_seedgen(void) {
     return seed;
   }
 
-  LOG(INFO) << "System entropy source not available, "
-              "using fallback algorithm to generate seed instead.";
+  //LOG(INFO) << "System entropy source not available, "
+ //             "using fallback algorithm to generate seed instead.";
   if (f)
     fclose(f);
 
