@@ -18,6 +18,7 @@ namespace cc{
 
 #define CLASSIFIER_MODEL_FROM_DATMODEL					0
 #define CLASSIFIER_MODEL_FROM_PROTOTXT_CAFFEMODEL		1
+#define CLASSIFIER_MODEL_FROM_DATA_PTR					2
 
 	CCAPI Classifier* CCCALL loadClassifier(const char* prototxt, const char* caffemodel, float scale, int numMeans, float* meanValue, int gpuID){
 		return new Classifier(prototxt, caffemodel, scale, numMeans, meanValue, gpuID);
@@ -25,6 +26,10 @@ namespace cc{
 
 	CCAPI Classifier* CCCALL loadClassifier2(const char* datmodel, float scale, int numMeans, float* meanValue, int gpuID){
 		return new Classifier(datmodel, scale, numMeans, meanValue, gpuID);
+	}
+
+	CCAPI Classifier* CCCALL loadClassifier3(const void* prototxt, int lenprototxt, const void* caffemodel, int lencaffemodel, float scale, int numMeans, float* meanValue, int gpuID){
+		return new Classifier(prototxt, lenprototxt, caffemodel, lencaffemodel, scale, numMeans, meanValue, gpuID);
 	}
 
 	CCAPI void CCCALL releaseClassifier(Classifier* clas){
@@ -39,6 +44,24 @@ namespace cc{
 		this->gpuID_ = gpuID;
 		this->modelFrom_ = CLASSIFIER_MODEL_FROM_DATMODEL;
 
+		memset(this->mean_, 0, sizeof(this->mean_));
+
+		for (int i = 0; i < min(numMeans, 3); ++i)
+			this->mean_[i] = meanValue[i];
+	}
+
+	Classifier::Classifier(const void* prototxt, int lenprototxt, const void* caffemodel, int lencaffemodel, float scale, int numMeans, float* meanValue, int gpuID){
+		this->contextInited_ = false;
+		this->scale_ = scale;
+		this->num_mean_ = numMeans;
+		this->gpuID_ = gpuID;
+		this->modelFrom_ = CLASSIFIER_MODEL_FROM_DATA_PTR;
+		this->ptrPrototxt_ = new char[lenprototxt];
+		this->lenPrototxt_ = lenprototxt;
+		this->ptrCaffemodel_ = new char[lencaffemodel];
+		this->lenCaffemodel_ = lencaffemodel;
+		memcpy(this->ptrPrototxt_, prototxt, lenprototxt);
+		memcpy(this->ptrCaffemodel_, caffemodel, lencaffemodel);
 		memset(this->mean_, 0, sizeof(this->mean_));
 
 		for (int i = 0; i < min(numMeans, 3); ++i)
@@ -100,6 +123,14 @@ namespace cc{
 		else if (this->modelFrom_ == CLASSIFIER_MODEL_FROM_PROTOTXT_CAFFEMODEL){
 			this->net_ = loadNetFromPrototxt(this->prototxt_, PhaseTest);
 			this->net_->copyTrainedParamFromFile(this->caffemodel_);
+		}
+		else if (this->modelFrom_ == CLASSIFIER_MODEL_FROM_DATA_PTR){
+			this->net_ = loadNetFromPrototxtString(this->ptrPrototxt_, this->lenPrototxt_, PhaseTest);
+			this->net_->copyTrainedParamFromData(this->ptrCaffemodel_, this->lenCaffemodel_);
+			delete[]this->ptrPrototxt_;
+			delete[]this->ptrCaffemodel_;
+			this->ptrPrototxt_ = 0;
+			this->ptrCaffemodel_ = 0;
 		}
 		else{
 			throw "´íÎóµÄmodelFrom_";

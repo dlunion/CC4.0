@@ -187,6 +187,7 @@ namespace cc{
 	public:
 		Classifier(const char* prototxt, const char* caffemodel, float scale, int numMeans, float* meanValue, int gpuID);
 		Classifier(const char* datmodel, float scale, int numMeans, float* meanValue, int gpuID);
+		Classifier(const void* prototxt, int lenprototxt, const void* caffemodel, int lencaffemodel, float scale, int numMeans, float* meanValue, int gpuID);
 		void initContext();
 		bool isInitContext();
 		virtual ~Classifier();
@@ -210,8 +211,13 @@ namespace cc{
 		CCString datmodel_;
 		int modelFrom_;
 		bool contextInited_;
+		char* ptrPrototxt_;
+		int lenPrototxt_;
+		char* ptrCaffemodel_;
+		int lenCaffemodel_;
 	};
 
+	CCAPI Classifier* CCCALL loadClassifier3(const void* prototxt, int lenprototxt, const void* caffemodel, int lencaffemodel, float scale, int numMeans, float* meanValue, int gpuID);
 	CCAPI Classifier* CCCALL loadClassifier2(const char* datmodel, float scale, int numMeans, float* meanValue, int gpuID);
 	CCAPI Classifier* CCCALL loadClassifier(const char* prototxt, const char* caffemodel, float scale, int numMeans, float* meanValue, int gpuID);
 	CCAPI void CCCALL releaseClassifier(Classifier* clas);

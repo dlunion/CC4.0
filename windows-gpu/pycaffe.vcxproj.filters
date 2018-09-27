@@ -58,8 +58,8 @@
     <Filter Include="include\cc\core">
       <UniqueIdentifier>{f2c040cb-9a35-4dfd-9381-932763883414}</UniqueIdentifier>
     </Filter>
-    <Filter Include="interface">
-      <UniqueIdentifier>{9afef6bb-e6c7-41ea-b8f9-671c517193d3}</UniqueIdentifier>
+    <Filter Include="bin">
+      <UniqueIdentifier>{4b422ddf-8920-4599-9904-a9afee62b4a6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -525,17 +525,14 @@
     <ClInclude Include="..\include\caffe\cc\core\cc.h">
       <Filter>include\cc\core</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\caffe\cc\core\cc_matrix.h">
+      <Filter>include\cc\core</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\caffe\cc\core\cc_utils.h">
       <Filter>include\cc\core</Filter>
     </ClInclude>
     <ClInclude Include="..\include\caffe\layers\axpy_layer.hpp">
       <Filter>include\layers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\caffe\layers\get_data_dim_layer.hpp">
-      <Filter>include\layers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\caffe\util\model_crypt.h">
-      <Filter>include\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -902,16 +899,31 @@
     <ClCompile Include="..\src\caffe\layers\labelsequence_accuracy_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\caffe\layers\mtcnn_data_layer.cpp">
+      <Filter>src\layers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\layers\mtcnn_euclidean_loss_layer.cpp">
+      <Filter>src\layers</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\caffe\layers\st_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
     <ClCompile Include="..\src\caffe\layers\st_loss_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\caffe\util\mtcnn_data_gen.cpp">
+      <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\util\data_augmented.cpp">
+      <Filter>src\util</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\caffe\layers\conv_dw_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
     <ClCompile Include="..\src\caffe\util\pa_draw.cpp">
+      <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\caffe\util\ssd_augmented.cpp">
       <Filter>src\util</Filter>
     </ClCompile>
     <ClCompile Include="..\src\caffe\util\pa_file.cpp">
@@ -968,41 +980,17 @@
     <ClCompile Include="..\src\caffe\layers\warp_ctc_loss_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\_caffe.cpp">
+      <Filter>bin</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\caffe\layers\roi_pooling_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
     <ClCompile Include="..\src\caffe\layers\axpy_layer.cpp">
       <Filter>src\layers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\caffe\layers\get_data_dim_layer.cpp">
-      <Filter>src\layers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\caffe\layers\spatial_product_layer.cpp">
-      <Filter>src\layers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\caffe\layers\interp_layer.cpp">
-      <Filter>src\layers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\caffe\layers\densecrf_layer.cpp">
-      <Filter>src\layers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\caffe\util\densecrf_pairwise.cpp">
-      <Filter>src\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\caffe\util\densecrf_util.cpp">
-      <Filter>src\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\caffe\util\permutohedral.cpp">
-      <Filter>src\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\caffe\util\interp.cpp">
-      <Filter>src\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\caffe\util\model_crypt.cpp">
-      <Filter>src\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\_caffe.cpp">
-      <Filter>interface</Filter>
+      <Filter>include\util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1225,10 +1213,16 @@
     <CudaCompile Include="..\src\caffe\layers\ctc_loss_layer.cu">
       <Filter>src\layers</Filter>
     </CudaCompile>
+    <CudaCompile Include="..\src\caffe\layers\mtcnn_euclidean_loss_layer.cu">
+      <Filter>src\layers</Filter>
+    </CudaCompile>
     <CudaCompile Include="..\src\caffe\layers\st_layer.cu">
       <Filter>src\layers</Filter>
     </CudaCompile>
     <CudaCompile Include="..\src\caffe\layers\st_loss_layer.cu">
+      <Filter>src\layers</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\caffe\layers\mtcnn_data_layer.cu">
       <Filter>src\layers</Filter>
     </CudaCompile>
     <CudaCompile Include="..\src\caffe\layers\conv_dw_layer.cu">
@@ -1248,12 +1242,6 @@
     </CudaCompile>
     <CudaCompile Include="..\src\caffe\layers\axpy_layer.cu">
       <Filter>src\layers</Filter>
-    </CudaCompile>
-    <CudaCompile Include="..\src\caffe\layers\spatial_product_layer.cu">
-      <Filter>src\layers</Filter>
-    </CudaCompile>
-    <CudaCompile Include="..\src\caffe\util\interp.cu">
-      <Filter>src\util</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>
