@@ -1,3 +1,7 @@
+# 提示
+建议不要使用这个项目，更建议学习pytorch+tensorRT技术栈。这样收益会很大，谢谢
+
+
 # CC4.0
 Caffe for CC4.0-Windows，简单的Caffe C++接口，方便简单而更深入的研究深度学习
 
